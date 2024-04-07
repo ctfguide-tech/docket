@@ -6,4 +6,4 @@ Spin up an Alpine Container via an API endpoint.
 
 - `/` - Returns a simple message.
 - `/client` - A web client for connecting to your terminal.
-- `/create?username=&password=` - Creates a new container and returns the container ID.
+- `/create?username=&password=` - Creates a new container and returns the websocket URL.
