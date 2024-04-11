@@ -18,14 +18,18 @@ async function createContainer(username, password) {
   // Commands to add a new user and set their password
   const userSetupCommands = [
     `adduser -D ${username}`,
-    `echo "${username}:${password}" | chpasswd &&
-        sh -c 'trap "exit" INT TERM; sleep 1800 & wait'`,
+    `echo "${username}:${password}" | chpasswd && exec /bin/ash`,
   ];
 
+  // console.log("Running this:" + `${userSetupCommands.join(" && ")}`);
   // Container Config
   let container = await docker.createContainer({
     Image: "alpine",
-    Cmd: ["/bin/ash", "-c", `${userSetupCommands.join(" && ")}`],
+    Cmd: [
+      "/bin/ash",
+      "-c",
+      `${userSetupCommands.join(" && ")} && echo Welcome to Docket!`,
+    ],
     Tty: true,
     OpenStdin: true,
   });
@@ -35,28 +39,14 @@ async function createContainer(username, password) {
   // Get the container's ID
   const containerInfo = await container.inspect();
 
-  console.log("================================");
-  console.log(containerInfo);
-  console.log("================================");
-
   const containerId = containerInfo.Id;
 
-  // Start socat to redirect TCP traffic to the Docker socket on macOS
-  const socatProcess = spawn("socat", [
-    "TCP-LISTEN:2375,reuseaddr,fork",
-    "UNIX-CLIENT:/Library/Containers/com.docker.docker/Data/docker.raw.sock",
-  ]);
-
-  // LINUX:
-  // const socatProcess = spawn('socat', ['TCP-LISTEN:2375,reuseaddr,fork', 'UNIX:/var/run/docker.sock']);
-
-  socatProcess.on("error", (err) => {
-    throw new Error("Failed to start socat: " + err.message);
-  });
+  console.log("================================");
+  console.log(containerId);
+  console.log("================================");
 
   // Construct the WebSocket endpoint
   const wsUrl = `ws://localhost:2375/containers/${containerId}/attach/ws?stream=1&stdin=1&stdout=1&stderr=1`;
-
   // Return the WebSocket URL
   return wsUrl;
 }
@@ -79,9 +69,49 @@ app.get("/create", async (req, res) => {
 
   try {
     let wsUrl = await createContainer(username, password);
-    return res.send(wsUrl);
+    // Check if wsUrl is correctly generated
+    if (wsUrl) {
+      console.log("Sent back client!");
+      return res.send(`
+        <!doctype html>
+        <html>
+            <head>
+                <title>Docket Testing</title>
+                <meta charset="UTF-8" />
+                <script src="https://cdn.jsdelivr.net/npm/xterm@5.0.0/lib/xterm.min.js"></script>
+                <link
+                    href="https://cdn.jsdelivr.net/npm/xterm@5.0.0/css/xterm.min.css"
+                    rel="stylesheet"
+                />
+                <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/xterm-addon-attach@0.8.0/lib/xterm-addon-attach.min.js"></script>
+                <script>
+                    window.onload = function () {
+                        let url = "${wsUrl}";
+                        const term = new window.Terminal();
+                        const fitAddon = new window.FitAddon.FitAddon();
+
+                        const socket = new WebSocket(url);
+                        const attachAddon = new AttachAddon.AttachAddon(socket);
+                        term.open(document.getElementById("terminal"));
+                        term.loadAddon(attachAddon);
+                        fitAddon.fit();
+
+                    };
+                </script>
+            </head>
+            <body style="background-color: black;">
+                <div id="terminal" style="width: 100%; height: 1000%; background-color:black;"></div>
+            </body>
+        </html>
+
+        `);
+    } else {
+      return res.status(500).send("Failed to generate WebSocket URL.");
+    }
   } catch (err) {
-    return res.send(err);
+    console.error(err); // Log the error for debugging
+    return res.status(500).send("Server error occurred.");
   }
 });
 

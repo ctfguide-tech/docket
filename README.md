@@ -1,4 +1,4 @@
-# docket
+# docket (this documentation is temporarily out of date)
 
 Spin up a container via an API endpoint.
 
