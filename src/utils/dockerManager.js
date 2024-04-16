@@ -114,11 +114,10 @@ export async function getRunningContainersCount() {
 export async function sendLoginCommandToContainer(containerId) {
     const container = docker.getContainer(containerId);
     const exec = await container.exec({
-        Cmd: ['sh', '-c', 'echo "Login command here"'], // Replace with your actual login command
+        Cmd: ['sh', '-c', 'echo "login"'],
         AttachStdout: true,
         AttachStderr: true,
         Tty: true,
     });
-    const stream = await exec.start({ Detach: false, Tty: true });
-    // You might want to handle the stream or output here
+    return exec;
 }

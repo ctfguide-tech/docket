@@ -67,18 +67,20 @@ app.get('/client', (req, res) => {
 
 
 
-                    fetch("/api/containers/${req.query.container}/login")
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.success) {
-                                    console.log('Login initiated successfully.');
-                                } else {
-                                    console.error('Failed to initiate login.');
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Error initiating login:', error);
-                    });
+                    setTimeout(() => {
+                      fetch("/api/containers/${req.query.container}/login")
+                        .then(response => response.json())
+                        .then(data => {
+                          if (data.success) {
+                            console.log('Login initiated successfully.');
+                          } else {
+                            console.error('Failed to initiate login.');
+                          }
+                        })
+                        .catch(error => {
+                          console.error('Error initiating login:', error);
+                        });
+                    }, 2000);
                     
                 };
           </script>
