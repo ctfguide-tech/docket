@@ -64,7 +64,7 @@ app.get('/client', (req, res) => {
                   term.loadAddon(attachAddon);
                   fitAddon.fit();
 
-                  term.write('${req.query.password}\\r');
+                  term.write('Please enter your password:');
               };
           </script>
       </head>

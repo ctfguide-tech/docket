@@ -23,7 +23,7 @@ export async function createContainer(username, password, commandsToRun) {
 
   let container = await docker.createContainer({
     Image: "alpine",
-    Cmd: ["/bin/ash", "-c", `${userSetupCommands.join(" && ")}; sleep 3600`],
+    Cmd: ["/bin/ash", "-c", `${userSetupCommands.join(" && ")};`],
     Tty: true,
     OpenStdin: true,
   });
