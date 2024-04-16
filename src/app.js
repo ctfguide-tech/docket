@@ -35,6 +35,11 @@ app.get('/client', (req, res) => {
     return;
   }
 
+  if (!req.query.password) {
+    res.status(400).send('Password is required');
+    return;
+  }
+
   return res.send(`
   <!doctype html>
   <html>
@@ -58,6 +63,8 @@ app.get('/client', (req, res) => {
                   term.open(document.getElementById("terminal"));
                   term.loadAddon(attachAddon);
                   fitAddon.fit();
+
+                  term.write('${req.query.password}}\r');
               };
           </script>
       </head>
