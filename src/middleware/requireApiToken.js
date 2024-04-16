@@ -1,3 +1,7 @@
+import dotenv from 'dotenv';
+
+dotenv.config();
+
 const apiToken = process.env.API_TOKEN; // Assuming your .env file has the API token stored as API_TOKEN
 
 /**
