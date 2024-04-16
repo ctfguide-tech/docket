@@ -4,7 +4,7 @@ import containerRoutes from './routes/containerRoutes.js';
 import { deleteContainersFromFile } from './utils/dockerManager.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
+import requireApiToken from './middleware/requireApiToken';
 
 dotenv.config();
 
@@ -25,8 +25,11 @@ app.use('/docs', express.static(path.join(__dirname, '..', 'docs')));
 
 // Delete containers from file at startup
 deleteContainersFromFile(filePath).then(() => {
-  app.use('/api', containerRoutes);
-
+  app.use('/api', requireApiToken, containerRoutes);
+  let containerAmount = getRunningContainersCount();
+  if (containerAmount > 0) {
+    console.log(`There are still ${containerAmount} running containers. These were likely not created by Docket.`);
+  }
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);
   });

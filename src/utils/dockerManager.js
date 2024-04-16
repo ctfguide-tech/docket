@@ -32,6 +32,29 @@ export async function createContainer(username, password) {
   return containerId;
 }
 
+/**
+ * Deletes a Docker container by ID and removes its ID from the text file.
+ * @param {string} containerId - The ID of the Docker container to delete.
+ * @returns {Promise<void>} A promise that resolves when the container is deleted and its ID is removed from the file.
+ */
+export async function deleteContainer(containerId) {
+    try {
+      const container = docker.getContainer(containerId);
+      await container.remove({ force: true });
+      console.log(`Container ${containerId} removed successfully.`);
+  
+      // Now remove the container ID from the file
+      const filePath = "../created.txt"; // Adjust the path as necessary
+      const data = await fs.readFile(filePath, 'utf8');
+      const containerIds = data.split('\n').filter(id => id !== containerId && id !== '');
+      await fs.writeFile(filePath, containerIds.join('\n'));
+      console.log(`Container ID ${containerId} removed from file.`);
+    } catch (error) {
+      console.error(`Failed to remove container ${containerId}: ${error.message}`);
+      throw error; // Rethrow the error to handle it in the route
+    }
+}
+
 
 /**
  * Deletes all Docker containers listed in a specified file.
@@ -58,5 +81,21 @@ export async function deleteContainersFromFile(filePath) {
     await fs.writeFile(filePath, ''); // Clear the file
   } catch (error) {
     console.error(`Error processing file ${filePath}: ${error.message}`);
+  }
+}
+
+/**
+ * Retrieves the count of currently running Docker containers.
+ * @returns {Promise<number>} A promise that resolves with the number of running containers.
+ */
+
+export async function getRunningContainersCount() {
+  try {
+    const containers = await docker.listContainers();
+    console.log(`There are ${containers.length} running containers.`);
+    return containers.length;
+  } catch (error) {
+    console.error('Error getting running containers:', error);
+    throw error;
   }
 }
