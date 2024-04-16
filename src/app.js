@@ -56,17 +56,18 @@ app.get('/client', (req, res) => {
           <script>
                   window.onload = function() {
                     const containerId = new URLSearchParams(window.location.search).get('container');
-                    if (containerId) {
-                      const term = new Terminal();
-                      const fitAddon = new FitAddon.FitAddon();
-                      term.loadAddon(fitAddon);
-                      term.open(document.getElementById('terminal'));
-                      fitAddon.fit();
+ 
+                    const term = new window.Terminal();
+                    const fitAddon = new window.FitAddon.FitAddon();
+                    const socket = new WebSocket("wss://${process.env.SOCAT_URL}/containers/${req.query.container}/attach/ws?stream=1&stdin=1&stdout=1&stderr=1");
+                    const attachAddon = new AttachAddon.AttachAddon(socket);
+                    term.open(document.getElementById("terminal"));
+                    term.loadAddon(attachAddon);
+                    fitAddon.fit();
 
-                      const attachAddon = new AttachAddon.AttachAddon(data.socketUrl);
-                      term.loadAddon(attachAddon);
 
-                      fetch("/api/containers/${req.query.container}/login")
+
+                    fetch("/api/containers/${req.query.container}/login")
                             .then(response => response.json())
                             .then(data => {
                                 if (data.success) {
@@ -77,8 +78,8 @@ app.get('/client', (req, res) => {
                             })
                             .catch(error => {
                                 console.error('Error initiating login:', error);
-                            });
-                    }
+                    });
+                    
                 };
           </script>
       </head>
