@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "generate-docs": "jsdoc -c jsdoc.json"
   },
   "type": "module",
   "author": "",
@@ -13,6 +14,11 @@
   "dependencies": {
     "child_process": "^1.0.2",
     "dockerode": "^4.0.2",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "dotenv": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "jsdoc": "^3.6.7"
   }
 }

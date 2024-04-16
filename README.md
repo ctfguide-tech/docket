@@ -1,4 +1,4 @@
-# docket (this documentation is temporarily out of date)
+# docket
 
 Spin up a container via an API endpoint.
 
@@ -15,22 +15,22 @@ After installing Docker, you can clone this repository by running `git clone htt
 You can install all the dependencies by running `npm install`.
 
 ## Deploying
+On Linux, you'll need to run this command:
+```socat TCP-LISTEN:2375,reuseaddr,fork UNIX-CLIENT:/var/run/docker.sock``
 
-Configure the port on an .env file or directly on the `index.js` file.
+On MacOS, you'll need to run this command: 
+```socat TCP-LISTEN:2375,reuseaddr,fork UNIX-CLIENT:$HOME/Library/Containers/com.docker.docker/Data/docker.raw.sock```
 
-Afterwards, run `npm start` and the server will start on that port. See endpoints below.
+Configure the port on an .env file or directly on the `server.js` file.
+
+Afterwards, run `node server.js` and the server will start on that port. See endpoints below.
 
 ## Endpoints
 
-- `/` - Returns a simple message.
-- `/client` - A web client for connecting to your terminal.
-- `/create?username=&password=` - Creates a new container and returns the websocket URL.
 
 ## Dependencies
 
 - Express
 - Dockerode
 
-## Notice
 
-If you're on Linux, you'll need to update the a variable called "socatProcess" on the `index.js` file to `spawn('socat', ['TCP-LISTEN:2375,reuseaddr,fork', 'UNIX:/var/run/docker.sock']);`. The current value is for MacOS.
