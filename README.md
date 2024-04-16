@@ -16,7 +16,7 @@ You can install all the dependencies by running `npm install`.
 
 ## Deploying
 On Linux, you'll need to run this command:
-```socat TCP-LISTEN:2375,reuseaddr,fork UNIX-CLIENT:/var/run/docker.sock``
+```socat TCP-LISTEN:2375,reuseaddr,fork UNIX-CLIENT:/var/run/docker.sock```
 
 On MacOS, you'll need to run this command: 
 ```socat TCP-LISTEN:2375,reuseaddr,fork UNIX-CLIENT:$HOME/Library/Containers/com.docker.docker/Data/docker.raw.sock```
@@ -26,6 +26,7 @@ Configure the port on an .env file or directly on the `server.js` file.
 Afterwards, run `node server.js` and the server will start on that port. See endpoints below.
 
 ## Endpoints
+This project uses JSDOC. You can access the docs by going to http://localhost:YOUR_PORT_HERE/docs
 
 
 ## Dependencies
