@@ -12,6 +12,14 @@ const apiToken = process.env.API_TOKEN; // Assuming your .env file has the API t
  */
 
 const requireApiToken = (req, res, next) => {
+
+  // check if request is to the /api/containers/:id/login route
+  if (req.url.includes('/api/containers/') && req.url.endsWith('/login')) {
+    next();
+    return;
+  }
+
+  
   const token = req.headers['authorization'];
 
   if (!token) {
