@@ -94,6 +94,72 @@
     
 
     
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<h4 class="name" id="requireApiToken"><span class="type-signature">(constant) </span>requireApiToken<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    Middleware to require an API token for accessing routes.
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="middleware_requireApiToken.js.html">middleware/requireApiToken.js</a>, <a href="middleware_requireApiToken.js.html#line10">line 10</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+    
 
     
         <h3 class="subsection-title">Methods</h3>
@@ -205,7 +271,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="fileManager.js.html">fileManager.js</a>, <a href="fileManager.js.html#line12">line 12</a>
+        <a href="utils_fileManager.js.html">utils/fileManager.js</a>, <a href="utils_fileManager.js.html#line17">line 17</a>
     </li></ul></dd>
     
 
@@ -387,7 +453,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="dockerManager.js.html">dockerManager.js</a>, <a href="dockerManager.js.html#line12">line 12</a>
+        <a href="utils_dockerManager.js.html">utils/dockerManager.js</a>, <a href="utils_dockerManager.js.html#line13">line 13</a>
     </li></ul></dd>
     
 
@@ -428,6 +494,165 @@
     <dd>
         
 <span class="param-type">Promise.&lt;string></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="deleteContainer"><span class="type-signature"></span>deleteContainer<span class="signature">(containerId)</span><span class="type-signature"> &rarr; {Promise.&lt;void>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Deletes a Docker container by ID and removes its ID from the text file.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>containerId</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The ID of the Docker container to delete.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="utils_dockerManager.js.html">utils/dockerManager.js</a>, <a href="utils_dockerManager.js.html#line40">line 40</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    A promise that resolves when the container is deleted and its ID is removed from the file.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise.&lt;void></span>
 
 
     </dd>
@@ -546,7 +771,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="dockerManager.js.html">dockerManager.js</a>, <a href="dockerManager.js.html#line40">line 40</a>
+        <a href="utils_dockerManager.js.html">utils/dockerManager.js</a>, <a href="utils_dockerManager.js.html#line64">line 64</a>
     </li></ul></dd>
     
 
@@ -599,6 +824,116 @@
 
 
         
+            
+
+    
+
+    
+    <h4 class="name" id="getRunningContainersCount"><span class="type-signature"></span>getRunningContainersCount<span class="signature">()</span><span class="type-signature"> &rarr; {Promise.&lt;number>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Retrieves the count of currently running Docker containers.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="utils_dockerManager.js.html">utils/dockerManager.js</a>, <a href="utils_dockerManager.js.html#line92">line 92</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    A promise that resolves with the number of running containers.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise.&lt;number></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
     
 
     
@@ -614,13 +949,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#appendContainerIdToFile">appendContainerIdToFile</a></li><li><a href="global.html#createContainer">createContainer</a></li><li><a href="global.html#deleteContainersFromFile">deleteContainersFromFile</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#appendContainerIdToFile">appendContainerIdToFile</a></li><li><a href="global.html#createContainer">createContainer</a></li><li><a href="global.html#deleteContainer">deleteContainer</a></li><li><a href="global.html#deleteContainersFromFile">deleteContainersFromFile</a></li><li><a href="global.html#getRunningContainersCount">getRunningContainersCount</a></li><li><a href="global.html#requireApiToken">requireApiToken</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.11</a> on Mon Apr 15 2024 21:02:52 GMT-0400 (Eastern Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.11</a> on Tue Apr 16 2024 00:54:02 GMT-0400 (Eastern Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>
