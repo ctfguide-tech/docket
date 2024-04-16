@@ -4,7 +4,8 @@ import containerRoutes from './routes/containerRoutes.js';
 import { deleteContainersFromFile } from './utils/dockerManager.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import requireApiToken from './middleware/requireApiToken';
+import requireApiToken from './middleware/requireApiToken.js';
+import { getRunningContainersCount } from './utils/dockerManager.js';
 
 dotenv.config();
 

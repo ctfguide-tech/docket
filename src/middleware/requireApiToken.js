@@ -7,7 +7,7 @@ const apiToken = process.env.API_TOKEN; // Assuming your .env file has the API t
  * @param {Function} next - The next middleware function in the stack.
  */
 
-export const requireApiToken = (req, res, next) => {
+const requireApiToken = (req, res, next) => {
   const token = req.headers['authorization'];
 
   if (!token) {
@@ -21,3 +21,4 @@ export const requireApiToken = (req, res, next) => {
   next();
 };
 
+export default requireApiToken;
