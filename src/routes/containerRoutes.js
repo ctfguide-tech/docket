@@ -1,10 +1,10 @@
 import express from 'express';
-import { createContainer } from '../utils/dockerManager.js';
+import { createContainer, deleteContainer } from '../utils/dockerManager.js';
 
 const router = express.Router();
 
 /**
- * @route GET /create
+ * @route GET /api/containers/create
  * @param {string} req.query.username - The username for the container.
  * @param {string} req.query.password - The password for the container.
  * @returns {Object} 200 - An object containing the container ID
@@ -12,7 +12,7 @@ const router = express.Router();
  * @returns {Error} 500 - Error message on container creation failure
  */
 
-router.get('/create', async (req, res) => {
+router.get('/containers/create', async (req, res) => {
   const { username, password } = req.query;
 
   if (!username || !password) {
@@ -26,5 +26,29 @@ router.get('/create', async (req, res) => {
     res.status(500).send(`Error creating container: ${error.message}`);
   }
 });
+
+
+/**
+ * @route DELETE /api/containers/:id
+ * @param {string} req.params.id - The ID of the container to delete.
+ * @returns {Object} 200 - Confirmation of container deletion
+ * @returns {Error} 400 - Container ID is required
+ * @returns {Error} 500 - Error message on container deletion failure
+ */
+router.delete('/containers/:id', async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).send("Container ID is required");
+  }
+
+  try {
+    await deleteContainer(id);
+    res.send({ message: `Container ${id} deleted successfully.` });
+  } catch (error) {
+    res.status(500).send(`Error deleting container: ${error.message}`);
+  }
+});
+
 
 export default router;
