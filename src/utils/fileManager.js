@@ -6,7 +6,7 @@ import path from 'path';
 // Equivalent of __dirname for ES modules
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const filePath = "../created.txt"
+const filePath = "./created.txt"
 
 
 /**

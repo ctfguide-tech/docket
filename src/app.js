@@ -19,8 +19,7 @@ const port = process.env.PORT || 3000;
 // Equivalent of __dirname for ES modules
 
 // Correctly setting the filePath
-const filePath = path.join(__dirname, '..', 'created.txt');
-
+const filePath = "./created.txt"
 // Serve JSDoc Documentation
 app.use('/docs', express.static(path.join(__dirname, '..', 'docs')));
 
