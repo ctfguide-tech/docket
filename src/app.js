@@ -54,18 +54,23 @@ app.get('/client', (req, res) => {
           <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
           <script src="https://cdn.jsdelivr.net/npm/xterm-addon-attach@0.8.0/lib/xterm-addon-attach.min.js"></script>
           <script>
-              window.onload = function () {
-                  let url = "wss://${process.env.SOCAT_URL}/containers/${req.query.container}/attach/ws?stream=1&stdin=1&stdout=1&stderr=1";
-                  const term = new window.Terminal();
-                  const fitAddon = new window.FitAddon.FitAddon();
-                  const socket = new WebSocket(url);
-                  const attachAddon = new AttachAddon.AttachAddon(socket);
-                  term.open(document.getElementById("terminal"));
-                  term.loadAddon(attachAddon);
-                  fitAddon.fit();
-
-                  term.write('Please enter your password:');
-              };
+                  window.onload = function() {
+                    const containerId = new URLSearchParams(window.location.search).get('container');
+                    if (containerId) {
+                        fetch("/api/containers/${req.query.container}/login")
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    console.log('Login initiated successfully.');
+                                } else {
+                                    console.error('Failed to initiate login.');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error initiating login:', error);
+                            });
+                    }
+                };
           </script>
       </head>
       <body style="background-color: black;">

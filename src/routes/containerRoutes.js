@@ -1,5 +1,5 @@
 import express from 'express';
-import { createContainer, deleteContainer } from '../utils/dockerManager.js';
+import { createContainer, deleteContainer, sendLoginCommandToContainer } from '../utils/dockerManager.js';
 
 const router = express.Router();
 
@@ -53,5 +53,22 @@ router.delete('/containers/:id', async (req, res) => {
   }
 });
 
+/**
+ * @route GET /api/containers/:id/login
+ * @param {string} req.params.id - The ID of the container for login.
+ * @returns {Object} 200 - Confirmation of login initiation
+ * @returns {Error} 400 - Container ID is required
+ * @returns {Error} 500 - Error message on login initiation failure
+ */
+router.get('/containers/:id/login', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await sendLoginCommandToContainer(id);
+        res.json({ success: true, message: 'Login initiated.' });
+    } catch (error) {
+        console.error(`Failed to initiate login for container ${id}:`, error);
+        res.status(500).json({ success: false, message: 'Failed to initiate login.' });
+    }
+});
 
 export default router;

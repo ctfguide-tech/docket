@@ -104,3 +104,21 @@ export async function getRunningContainersCount() {
     throw error;
   }
 }
+
+/**
+ * Sends a login command to a specified Docker container.
+ * @param {string} containerId - The ID of the Docker container to receive the login command.
+ * @returns {Promise<void>} A promise that resolves when the login command has been sent.
+ */
+
+export async function sendLoginCommandToContainer(containerId) {
+    const container = docker.getContainer(containerId);
+    const exec = await container.exec({
+        Cmd: ['sh', '-c', 'echo "Login command here"'], // Replace with your actual login command
+        AttachStdout: true,
+        AttachStderr: true,
+        Tty: true,
+    });
+    const stream = await exec.start({ Detach: false, Tty: true });
+    // You might want to handle the stream or output here
+}
