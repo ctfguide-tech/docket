@@ -57,7 +57,16 @@ app.get('/client', (req, res) => {
                   window.onload = function() {
                     const containerId = new URLSearchParams(window.location.search).get('container');
                     if (containerId) {
-                        fetch("/api/containers/${req.query.container}/login")
+                      const term = new Terminal();
+                      const fitAddon = new FitAddon.FitAddon();
+                      term.loadAddon(fitAddon);
+                      term.open(document.getElementById('terminal'));
+                      fitAddon.fit();
+
+                      const attachAddon = new AttachAddon.AttachAddon(data.socketUrl);
+                      term.loadAddon(attachAddon);
+
+                      fetch("/api/containers/${req.query.container}/login")
                             .then(response => response.json())
                             .then(data => {
                                 if (data.success) {
