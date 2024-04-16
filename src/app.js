@@ -23,6 +23,10 @@ const filePath = path.join(__dirname, '..', 'created.txt');
 // Serve JSDoc Documentation
 app.use('/docs', express.static(path.join(__dirname, '..', 'docs')));
 
+app.get('/', (req, res) => {
+  res.redirect('/docs');
+});
+
 // Delete containers from file at startup
 deleteContainersFromFile(filePath).then(() => {
   app.use('/api', requireApiToken, containerRoutes);
