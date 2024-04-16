@@ -1,7 +1,12 @@
 import fs from 'fs';
+import { fileURLToPath } from 'url';
 import path from 'path';
 
-const filePath = path.join(__dirname, '..', '..', 'created.txt');
+
+// Equivalent of __dirname for ES modules
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const filePath = "../created.txt"
 
 
 /**

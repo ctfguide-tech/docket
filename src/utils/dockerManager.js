@@ -1,5 +1,6 @@
 import Docker from 'dockerode';
 import { appendContainerIdToFile } from './fileManager.js';
+import fs from 'fs/promises';
 
 const docker = new Docker({ socketPath: "/var/run/docker.sock" });
 
@@ -38,7 +39,6 @@ export async function createContainer(username, password) {
  * @returns {Promise<void>} A promise that resolves when all containers have been deleted.
  */
 export async function deleteContainersFromFile(filePath) {
-  const fs = require('fs').promises;
   try {
     const data = await fs.readFile(filePath, 'utf8');
     const containerIds = data.split('\n').filter(Boolean);
