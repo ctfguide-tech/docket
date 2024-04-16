@@ -1,4 +1,6 @@
-![Banner](https://i.ibb.co/LJxxtc7/Untitled-design-16.png)
+<p align="center">
+  <img src="https://i.ibb.co/LJxxtc7/Untitled-design-16.png" alt="Banner">
+</p>
 
 # docket
 
