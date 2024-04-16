@@ -50,7 +50,7 @@ app.get('/client', (req, res) => {
           <script src="https://cdn.jsdelivr.net/npm/xterm-addon-attach@0.8.0/lib/xterm-addon-attach.min.js"></script>
           <script>
               window.onload = function () {
-                  let url = "ws://localhost:2375/containers/${req.query.container}/attach/ws?stream=1&stdin=1&stdout=1&stderr=1";
+                  let url = "ws://${process.env.SOCAT_URL}/containers/${req.query.container}/attach/ws?stream=1&stdin=1&stdout=1&stderr=1";
                   const term = new window.Terminal();
                   const fitAddon = new window.FitAddon.FitAddon();
                   const socket = new WebSocket(url);
