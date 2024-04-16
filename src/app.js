@@ -22,7 +22,7 @@ const port = process.env.PORT || 3000;
 const filePath = "./created.txt"
 // Serve JSDoc Documentation
 app.use('/docs', express.static(path.join(__dirname, '..', 'docs')));
-
+app.use(express.json());
 app.get('/', (req, res) => {
   res.redirect('/docs');
 });

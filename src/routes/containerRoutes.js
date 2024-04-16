@@ -7,6 +7,7 @@ const router = express.Router();
  * @route GET /api/containers/create
  * @param {string} req.query.username - The username for the container.
  * @param {string} req.query.password - The password for the container.
+ * @param {string} req.body.commandsToRun - The commands to run in the container. (Optional)
  * @returns {Object} 200 - An object containing the container ID
  * @returns {Error} 400 - Username and password are required
  * @returns {Error} 500 - Error message on container creation failure
@@ -14,13 +15,15 @@ const router = express.Router();
 
 router.post('/containers/create', async (req, res) => {
   const { username, password } = req.query;
+  
+  const { commandsToRun } = req.body;
 
   if (!username || !password) {
     return res.status(400).send("Username and password are required");
   }
 
   try {
-    const containerId = await createContainer(username, password);
+    const containerId = await createContainer(username, password, commandsToRun);
     res.send({ containerId });
   } catch (error) {
     res.status(500).send(`Error creating container: ${error.message}`);
