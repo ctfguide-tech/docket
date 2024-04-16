@@ -15,7 +15,7 @@ const router = express.Router();
 
 router.post('/containers/create', async (req, res) => {
   const { username, password } = req.query;
-  
+
   const { commandsToRun } = req.body;
 
   if (!username || !password) {
@@ -61,14 +61,14 @@ router.delete('/containers/:id', async (req, res) => {
  * @returns {Error} 500 - Error message on login initiation failure
  */
 router.get('/containers/:id/login', async (req, res) => {
-    const { id } = req.params;
-    try {
-        await sendLoginCommandToContainer(id);
-        res.json({ success: true, message: 'Login initiated.' });
-    } catch (error) {
-        console.error(`Failed to initiate login for container ${id}:`, error);
-        res.status(500).json({ success: false, message: 'Failed to initiate login.' });
-    }
+  const { id } = req.params;
+  try {
+    await sendLoginCommandToContainer(id);
+    res.json({ success: true, message: 'Login initiated.' });
+  } catch (error) {
+    console.error(`Failed to initiate login for container ${id}:`, error);
+    res.status(500).json({ success: false, message: 'Failed to initiate login.' });
+  }
 });
 
 export default router;
