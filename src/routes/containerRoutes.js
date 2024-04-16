@@ -12,7 +12,7 @@ const router = express.Router();
  * @returns {Error} 500 - Error message on container creation failure
  */
 
-router.get('/containers/create', async (req, res) => {
+router.post('/containers/create', async (req, res) => {
   const { username, password } = req.query;
 
   if (!username || !password) {
