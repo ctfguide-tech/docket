@@ -14,9 +14,7 @@ const router = express.Router();
  */
 
 router.post('/containers/create', async (req, res) => {
-  const { username, password } = req.query;
-
-  const { commandsToRun } = req.body;
+  const { username, password, commandsToRun } = req.body;
 
   if (!username || !password) {
     return res.status(400).send("Username and password are required");
