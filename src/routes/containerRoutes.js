@@ -14,8 +14,13 @@ const router = express.Router();
  */
 
 router.post('/containers/create', async (req, res) => {
-  const { username, password, commandsToRun } = req.body;
+  const { terminalUserName, terminalUserPassword, commandsToRun } = req.body;
 
+  // legacy support
+  let username = terminalUserName;
+  let password = terminalUserPassword;
+
+  
   if (!username || !password) {
     return res.status(400).send("Username and password are required");
   }
