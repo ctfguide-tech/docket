@@ -72,7 +72,6 @@ app.get('/client', (req, res) => {
                     fitAddon.fit();
 
 
-
                     setTimeout(() => {
                       fetch("/api/containers/${req.query.container}/login")
                         .then(response => response.json())
