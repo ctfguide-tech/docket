@@ -14,9 +14,8 @@ const docker = new Docker({ socketPath: "/var/run/docker.sock" });
 export async function createContainer(username, password, commandsToRun) {
   const userSetupCommands = [
     `adduser -D ${username}`,
-    `echo "${username}:${password}" | chpasswd`,
     commandsToRun || '',
-    `echo "${password}" | passwd ${username} | bash`
+    ``
   ];
 
   console.log(userSetupCommands);
