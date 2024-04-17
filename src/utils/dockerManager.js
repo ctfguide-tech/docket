@@ -15,7 +15,7 @@ export async function createContainer(username, password, commandsToRun) {
   const userSetupCommands = [
     `adduser -D ${username}`,
     commandsToRun || '',
-    `exec /bin/ash && echo "Welcome to Docket"`
+    `exec /bin/ash && login ${username}`
   ];
 
   console.log(userSetupCommands);
