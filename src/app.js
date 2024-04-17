@@ -6,6 +6,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import requireApiToken from './middleware/requireApiToken.js';
 import { getRunningContainersCount } from './utils/dockerManager.js';
+import cors from 'cors';
+
 
 dotenv.config();
 
@@ -23,6 +25,10 @@ const filePath = "./created.txt"
 // Serve JSDoc Documentation
 app.use('/docs', express.static(path.join(__dirname, '..', 'docs')));
 app.use(express.json());
+app.use(cors({
+  origin: '*'
+}));
+
 
 app.get('/', (req, res) => {
   res.redirect('/docs');
