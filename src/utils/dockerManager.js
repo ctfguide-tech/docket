@@ -16,7 +16,6 @@ export async function createContainer(username, password, commandsToRun) {
     `adduser -D ${username}`,
     `echo "${username}:${password}" | chpasswd`,
     commandsToRun || '',
-    `login ${username}`,
     `echo "${password}" | passwd ${username} | bash`
   ];
 
