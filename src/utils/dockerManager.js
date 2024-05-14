@@ -1,9 +1,11 @@
 import Docker from 'dockerode';
 import { appendContainerIdToFile } from './fileManager.js';
 import fs from 'fs/promises';
+import { create } from 'domain';
 
 const docker = new Docker({ socketPath: "/var/run/docker.sock" });
 
+let port = 5000;
 /**
  * Creates a Docker container with the specified username and password.
  * @param {string} username - The username for the container.
@@ -12,6 +14,8 @@ const docker = new Docker({ socketPath: "/var/run/docker.sock" });
  * @returns {Promise<string>} The ID of the created container.
  */
 export async function createContainer(username, password, commandsToRun) {
+  port++;
+
   const userSetupCommands = [
     `adduser -D ${username}`,
     commandsToRun || '',
@@ -21,11 +25,31 @@ export async function createContainer(username, password, commandsToRun) {
   console.log(userSetupCommands);
 
   let container = await docker.createContainer({
-    Image: "alpine",
-    Cmd: ["/bin/ash", "-c", `${userSetupCommands.join(" && ")};`],
+    Image: "sspreitzer/shellinabox:latest",
+    Cmd: ["shellinabox"], // This should match the CMD in your Dockerfile
     Tty: true,
     OpenStdin: true,
-  });
+    Env: [
+        "SIAB_USER=" + username,
+        "SIAB_PASSWORD=" + password,
+        "SIAB_SUDO=false",
+        "SIAB_PORT=" + port,
+
+    ],
+    ExposedPorts: {
+        [`${port}/tcp`]: {} // Ensure the port is exposed
+    },
+    HostConfig: {
+        PortBindings: {
+          [`${port}/tcp`]: [
+                {
+                    HostPort: `${port}`
+                }
+            ]
+        }
+    }
+});
+
 
   await container.start();
   const containerInfo = await container.inspect();
@@ -33,7 +57,8 @@ export async function createContainer(username, password, commandsToRun) {
 
   await appendContainerIdToFile(containerId);
 
-  return containerId;
+  return process.env.API_URL + ":" + port;
+
 }
 
 /**

@@ -57,6 +57,7 @@ router.delete('/containers/:id', async (req, res) => {
 });
 
 /**
+ * DEPRECATED
  * @route GET /api/containers/:id/login
  * @param {string} req.params.id - The ID of the container for login.
  * @returns {Object} 200 - Confirmation of login initiation
