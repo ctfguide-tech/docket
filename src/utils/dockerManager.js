@@ -16,72 +16,82 @@ let port = 5000;
 export async function createContainer(username, password, commandsToRun) {
   port++;
 
-  const userSetupCommands = [
-    `adduser -D ${username}`,
-    commandsToRun || '',
-    `exec /bin/ash && login ${username}`
-  ];
-
-  console.log(userSetupCommands);
+  const userSetupCommands = commandsToRun;
 
   let container = await docker.createContainer({
     Image: "sspreitzer/shellinabox:latest",
-    Cmd: ["shellinabox"], // This should match the CMD in your Dockerfile
+    Cmd: [`shellinabox`],
     Tty: true,
     OpenStdin: true,
     Env: [
-        "SIAB_USER=" + username,
-        "SIAB_PASSWORD=" + password,
-        "SIAB_SUDO=false",
-        "SIAB_PORT=" + port,
-
+      "SIAB_USER=" + username,
+      "SIAB_PASSWORD=" + password,
+      "SIAB_SUDO=false",
+      "SIAB_GROUPID=1004",
+      "SIAB_USERID=1004",
+      "SIAB_USERCSS=Normal:-/etc/shellinabox/options-enabled/00+Black-on-White.css,Reverse:+/etc/shellinabox/options-enabled/00_White-On-Black.css;Colors:+/etc/shellinabox/options-enabled/01+Color-Terminal.css,Monochrome:-/etc/shellinabox/options-enabled/01_Monochrome.css",
+      "SIAB_PORT=" + port,
     ],
     ExposedPorts: {
-        [`${port}/tcp`]: {} // Ensure the port is exposed
+      [`${port}/tcp`]: {} // Ensure the port is exposed
     },
     HostConfig: {
-        PortBindings: {
-          [`${port}/tcp`]: [
-                {
-                    HostPort: `${port}`
-                }
-            ]
-        }
+      PortBindings: {
+        [`${port}/tcp`]: [
+          {
+            HostPort: `${port}`
+          }
+        ]
+      }
     }
-});
-
+  });
 
   await container.start();
   const containerInfo = await container.inspect();
   const containerId = containerInfo.Id;
 
+  // Run additional commands in the container
+
+  await docker.getContainer(containerId).exec({
+    Cmd: ['sh', '-c', `cd /home/guest && ${userSetupCommands}`], // Change directory before executing the command
+    AttachStdin: true,
+    AttachStdout: true,
+    AttachStderr: true,
+    Tty: false
+  }, function (err, exec) {
+    if (err) throw err;
+    exec.start(function (err, stream) {
+      if (err) throw err;
+      stream.pipe(process.stdout);
+    });
+  });
+
+
   await appendContainerIdToFile(containerId);
 
   return process.env.API_URL + ":" + port;
-
 }
-
 /**
  * Deletes a Docker container by ID and removes its ID from the text file.
  * @param {string} containerId - The ID of the Docker container to delete.
  * @returns {Promise<void>} A promise that resolves when the container is deleted and its ID is removed from the file.
  */
 export async function deleteContainer(containerId) {
-    try {
-      const container = docker.getContainer(containerId);
-      await container.remove({ force: true });
-      console.log(`Container ${containerId} removed successfully.`);
-  
-      // Now remove the container ID from the file
-      const filePath = "../created.txt"; // Adjust the path as necessary
-      const data = await fs.readFile(filePath, 'utf8');
-      const containerIds = data.split('\n').filter(id => id !== containerId && id !== '');
-      await fs.writeFile(filePath, containerIds.join('\n'));
-      console.log(`Container ID ${containerId} removed from file.`);
-    } catch (error) {
-      console.error(`Failed to remove container ${containerId}: ${error.message}`);
-      throw error; // Rethrow the error to handle it in the route
-    }
+  try {
+    const container = docker.getContainer(containerId);
+    await container.remove({ force: true });
+    console.log(`Container ${containerId} removed successfully.`);
+
+    // Now remove the container ID from the file
+    const filePath = "../created.txt"; // Adjust the path as necessary
+    const data = await fs.readFile(filePath, 'utf8');
+    const containerIds = data.split('\n').filter(id => id !== containerId && id !== '');
+    await fs.writeFile(filePath, containerIds.join('\n'));
+    console.log(`Container ID ${containerId} removed from file.`);
+  } catch (error) {
+    console.error(`Failed to remove container ${containerId}: ${error.message}`);
+    throw error; // Rethrow the error to handle it in the route
+  }
 }
 
 
@@ -136,12 +146,12 @@ export async function getRunningContainersCount() {
  */
 
 export async function sendLoginCommandToContainer(containerId) {
-    const container = docker.getContainer(containerId);
-    const exec = await container.exec({
-        Cmd: ['sh', '-c', 'echo "login"'],
-        AttachStdout: true,
-        AttachStderr: true,
-        Tty: true,
-    });
-    return exec;
+  const container = docker.getContainer(containerId);
+  const exec = await container.exec({
+    Cmd: ['sh', '-c', 'echo "login"'],
+    AttachStdout: true,
+    AttachStderr: true,
+    Tty: true,
+  });
+  return exec;
 }
