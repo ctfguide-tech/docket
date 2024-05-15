@@ -31,6 +31,7 @@ export async function createContainer(username, password, commandsToRun) {
       "SIAB_PASSWORD=" + password,
       "SIAB_SUDO=false",
       "SIAB_GROUPID=1004",
+      "SIAB_SSL=false",
       "SIAB_USERID=1004",
       "SIAB_USERCSS=Normal:-/etc/shellinabox/options-enabled/00+Black-on-White.css,Reverse:+/etc/shellinabox/options-enabled/00_White-On-Black.css;Colors:+/etc/shellinabox/options-enabled/01+Color-Terminal.css,Monochrome:-/etc/shellinabox/options-enabled/01_Monochrome.css",
       "SIAB_PORT=" + port,
@@ -72,7 +73,7 @@ export async function createContainer(username, password, commandsToRun) {
 
   await appendContainerIdToFile(containerId);
 
-  return process.env.API_URL + ":" + port;
+  return port + "ctfguide.com";
 }
 /**
  * Deletes a Docker container by ID and removes its ID from the text file.
