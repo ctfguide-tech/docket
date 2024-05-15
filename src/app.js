@@ -5,6 +5,7 @@ import { deleteContainersFromFile } from './utils/dockerManager.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import requireApiToken from './middleware/requireApiToken.js';
+import { sendMessage } from './utils/discord.js';
 import { getRunningContainersCount } from './utils/dockerManager.js';
 import cors from 'cors';
 
@@ -99,6 +100,8 @@ app.get('/client', (req, res) => {
 
 // Delete containers from file at startup
 deleteContainersFromFile(filePath).then(() => {
+  //sendMessage("All containers have been purged. Base port starting at 5000.")
+
   app.use('/api', requireApiToken, containerRoutes);
   let containerAmount = getRunningContainersCount();
   if (containerAmount > 0) {
@@ -106,5 +109,8 @@ deleteContainersFromFile(filePath).then(() => {
   }
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);
+    sendMessage("**Docket is now deployed in** `" + process.env.SHARD_LOCATION + "`. All existing containers have been removed. ")
+  
+
   });
 });

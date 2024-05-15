@@ -2,7 +2,7 @@ import Docker from 'dockerode';
 import { appendContainerIdToFile } from './fileManager.js';
 import fs from 'fs/promises';
 import { create } from 'domain';
-
+import { sendMessage } from './discord.js';
 const docker = new Docker({ socketPath: "/var/run/docker.sock" });
 
 let port = 5000;
@@ -17,6 +17,9 @@ export async function createContainer(username, password, commandsToRun) {
   port++;
 
   const userSetupCommands = commandsToRun;
+
+  sendMessage(`Spawning container :${port}.\n\nThe following commands are being run:\n + \`${commandsToRun}\` `)
+
 
   let container = await docker.createContainer({
     Image: "sspreitzer/shellinabox:latest",
@@ -81,6 +84,7 @@ export async function deleteContainer(containerId) {
     const container = docker.getContainer(containerId);
     await container.remove({ force: true });
     console.log(`Container ${containerId} removed successfully.`);
+    sendMessage(`Deleted container with ID ${containerId}`)
 
     // Now remove the container ID from the file
     const filePath = "../created.txt"; // Adjust the path as necessary
