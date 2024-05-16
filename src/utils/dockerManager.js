@@ -73,7 +73,7 @@ export async function createContainer(username, password, commandsToRun) {
 
   await appendContainerIdToFile(containerId);
 
-  return port + "ctfguide.com";
+  return "https://" + port + "ctfguide.com";
 }
 /**
  * Deletes a Docker container by ID and removes its ID from the text file.
