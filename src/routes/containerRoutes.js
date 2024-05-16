@@ -2,6 +2,9 @@ import express from 'express';
 import { createContainer, deleteContainer, sendLoginCommandToContainer } from '../utils/dockerManager.js';
 
 const router = express.Router();
+router.use(cors({
+  origin: '*'
+}));
 
 /**
  * @route GET /api/containers/create
