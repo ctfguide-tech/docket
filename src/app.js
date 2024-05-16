@@ -26,8 +26,12 @@ const filePath = "./created.txt"
 // Serve JSDoc Documentation
 app.use('/docs', express.static(path.join(__dirname, '..', 'docs')));
 app.use(express.json());
-app.use(cors());
+const corsOptions = {
+  origin: 'https://freezing-dolomite-eater.glitch.me', // Specify the origin explicitly
+  credentials: true // Allow credentials
+};
 
+app.use(cors(corsOptions));
 
 
 app.get('/', (req, res) => {

@@ -3,7 +3,13 @@ import { createContainer, deleteContainer, sendLoginCommandToContainer } from '.
 import cors from 'cors';
 
 const router = express.Router();
-router.use(cors());
+
+const corsOptions = {
+  origin: 'https://freezing-dolomite-eater.glitch.me', // Specify the origin explicitly
+  credentials: true // Allow credentials
+};
+
+router.use(cors(corsOptions));
 
 
 /**
