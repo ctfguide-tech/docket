@@ -26,9 +26,8 @@ const filePath = "./created.txt"
 // Serve JSDoc Documentation
 app.use('/docs', express.static(path.join(__dirname, '..', 'docs')));
 app.use(express.json());
-app.use(cors({
-  origin: '*'
-}));
+router.use(cors());
+
 
 
 app.get('/', (req, res) => {

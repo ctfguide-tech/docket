@@ -3,9 +3,8 @@ import { createContainer, deleteContainer, sendLoginCommandToContainer } from '.
 import cors from 'cors';
 
 const router = express.Router();
-router.use(cors({
-  origin: '*'
-}));
+router.use(cors());
+
 
 /**
  * @route GET /api/containers/create
