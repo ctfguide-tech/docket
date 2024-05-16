@@ -32,7 +32,8 @@ app.use(cors({
 
 
 app.get('/', (req, res) => {
-  res.redirect('/docs');
+//  res.redirect('/docs');
+res.send("ok");
 });
 
 // Demo Client
