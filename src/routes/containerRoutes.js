@@ -1,5 +1,6 @@
 import express from 'express';
 import { createContainer, deleteContainer, sendLoginCommandToContainer } from '../utils/dockerManager.js';
+import cors from 'cors';
 
 const router = express.Router();
 router.use(cors({
