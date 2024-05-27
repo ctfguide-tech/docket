@@ -22,7 +22,7 @@ export async function createContainer(username, password, commandsToRun) {
 
 
   let container = await docker.createContainer({
-    Image: "sspreitzer/shellinabox:latest",
+    Image: "ctfguide",
     Cmd: [`shellinabox`],
     Tty: true,
     OpenStdin: true,

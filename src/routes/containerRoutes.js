@@ -4,14 +4,6 @@ import cors from 'cors';
 
 const router = express.Router();
 
-const corsOptions = {
-  origin: 'https://freezing-dolomite-eater.glitch.me', // Specify the origin explicitly
-  credentials: true // Allow credentials
-};
-
-router.use(cors(corsOptions));
-
-
 /**
  * @route GET /api/containers/create
  * @param {string} req.query.username - The username for the container.
