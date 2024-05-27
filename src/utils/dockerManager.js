@@ -5,7 +5,7 @@ import { create } from 'domain';
 import { sendMessage } from './discord.js';
 const docker = new Docker({ socketPath: "/var/run/docker.sock" });
 
-let port = 5000;
+//let port = "5002"
 /**
  * Creates a Docker container with the specified username and password.
  * @param {string} username - The username for the container.
@@ -13,8 +13,7 @@ let port = 5000;
  * @param {string} commandsToRun - The commands to run in the container. (Optional)
  * @returns {Promise<string>} The ID of the created container.
  */
-export async function createContainer(username, password, commandsToRun) {
-  port++;
+export async function createContainer(username, password, commandsToRun, port) {
 
   const userSetupCommands = commandsToRun;
 
