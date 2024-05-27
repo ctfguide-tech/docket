@@ -29,7 +29,7 @@ export async function createContainer(username, password, commandsToRun) {
     Env: [
       "SIAB_USER=" + username,
       "SIAB_PASSWORD=" + password,
-      "SIAB_SUDO=false",
+      "SIAB_SUDO=true",
       "SIAB_GROUPID=1004",
       "SIAB_SSL=false",
       "SIAB_USERID=1004",
@@ -57,7 +57,7 @@ export async function createContainer(username, password, commandsToRun) {
   // Run additional commands in the container
 
   await docker.getContainer(containerId).exec({
-    Cmd: ['sh', '-c', `cd /home/guest && ${userSetupCommands}`], // Change directory before executing the command
+    Cmd: ['sh', '-c', `cd /home/guest && rm -f /etc/update-motd.d/* && echo "\\033[1;33mWelcome to your CTFGuide Workspace. Compute is provided by STiBaRC.\nAll sessions are logged. Remember to follow our TOS when using this terminal. Happy Hacking!\n\n\\033[0m" | tee /etc/motd && ${userSetupCommands}`], // Blue color, disable other MOTD scripts
     AttachStdin: true,
     AttachStdout: true,
     AttachStderr: true,

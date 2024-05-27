@@ -16,7 +16,7 @@ ENV SIAB_USERCSS="Normal:+/etc/shellinabox/options-enabled/00+Black-on-White.css
     SIAB_PKGS=none \
     SIAB_SCRIPT=none
 
-RUN apt-get update && apt-get install -y openssl curl openssh-client sudo shellinabox && \
+RUN apt-get update && apt-get install -y openssl curl openssh-client sudo shellinabox &&  \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
     ln -sf '/etc/shellinabox/options-enabled/00+Black on White.css' \
@@ -25,6 +25,13 @@ RUN apt-get update && apt-get install -y openssl curl openssh-client sudo shelli
       /etc/shellinabox/options-enabled/00_White-On-Black.css && \
     ln -sf '/etc/shellinabox/options-enabled/01+Color Terminal.css' \
       /etc/shellinabox/options-enabled/01+Color-Terminal.css
+
+RUN apt-get build-essential
+RUN apt-get install -y python3
+RUn apt-get install -y python3-pip
+RUN apt-get install -y vim 
+RUN apt install -y git
+
 
 EXPOSE 4200
 
