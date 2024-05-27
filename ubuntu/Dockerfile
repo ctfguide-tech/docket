@@ -26,7 +26,7 @@ RUN apt-get update && apt-get install -y openssl curl openssh-client sudo shelli
     ln -sf '/etc/shellinabox/options-enabled/01+Color Terminal.css' \
       /etc/shellinabox/options-enabled/01+Color-Terminal.css
 
-RUN apt-get build-essential
+RUN apt-get update && apt-get install -y build-essential
 RUN apt-get install -y python3
 RUn apt-get install -y python3-pip
 RUN apt-get install -y vim 
@@ -37,7 +37,7 @@ EXPOSE 4200
 
 VOLUME /etc/shellinabox /var/log/supervisor /home
 
-ADD assets/entrypoint.sh /usr/local/sbin/
+ADD ./assets/entrypoint.sh /usr/local/sbin/
 
 ENTRYPOINT ["entrypoint.sh"]
 CMD ["shellinabox"]
