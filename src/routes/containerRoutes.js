@@ -15,7 +15,7 @@ const router = express.Router();
  */
 
 router.post('/containers/create', async (req, res) => {
-  const { terminalUserName, terminalUserPassword, commandsToRun, port, root} = req.body;
+  const { terminalUserName, terminalUserPassword, commandsToRun, port, root, node, image} = req.body;
 
   // legacy support
   let username = terminalUserName;
@@ -35,7 +35,7 @@ router.post('/containers/create', async (req, res) => {
   }
 
   try {
-    const containerId = await createContainer(username, password, commandsToRun, port, root);
+    const containerId = await createContainer(username, password, commandsToRun, port, root, node, image);
     res.send({ containerId });
   } catch (error) {
     res.status(500).send(`Error creating container: ${error.message}`);
