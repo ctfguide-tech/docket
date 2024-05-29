@@ -4,8 +4,7 @@ Authored by Pranav Ramesh
 */
 
 // Import TensorFlow.js
-const tf = require('@tensorflow/tfjs');
-
+import * as tf from '@tensorflow/tfjs';
 
 // TODO: Add endpoints for each node that can communicate back this information.
 const serverData = [
@@ -20,7 +19,7 @@ const outputs = serverData.map(server => server.node);
 
 // Convert data to tensors
 const inputTensor = tf.tensor2d(inputs);
-const outputTensor = tf.tensor1d(outputs, 'int32');
+const outputTensor = tf.tensor1d(outputs, 'float32');
 
 // Build and train the model
 const model = tf.sequential();
@@ -58,5 +57,5 @@ trainModel().then(() => {
   // Prediction
   const newContainer = { cpuUsage: 0.4, memoryUsage: 0.5, diskUsage: 0.3 };
   const bestNode = predictNode(newContainer.cpuUsage, newContainer.memoryUsage, newContainer.diskUsage);
-  console.log(`Optimal Node: ${bestNode}`);
+  console.log(`Optimal Node Placement found @ Node ${bestNode}`);
 });
