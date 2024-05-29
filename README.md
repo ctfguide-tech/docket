@@ -1,6 +1,6 @@
 # Docket
 
-Spin up an containers via an API endpoint.
+Manage fleets of containers across your own infrastructure. Built for CTFGuide's virtual terminal service.
 
 ## Installation
 1. Install Docker by following the instructions [here](https://docs.docker.com/get-docker/).
@@ -24,7 +24,20 @@ Spin up an containers via an API endpoint.
   - DEPRECATED: Initiate login for a container.
 
 ## Supported Images
-- ctfguide (Ubuntu 22.10 minimal with a few essential cyber related tools installed)
+- ctfguide: ShellInABox + Ubuntu 22.10 minimal with a few essential cyber related tools installed
+
+> Support for custom images is coming soon.
+
+## Tooling
+You'll find tools in the `src/tools` folder in this repository.
+
+## Tools
+- visualizer.js (alpha v.0.1)
+  - This spins up a web interface that allows you to visualize Docket.
+  - `node visualizer.js` to run.
+
+> There will be many more tools in the future!
+
 
 ## Dependencies
 - Express
