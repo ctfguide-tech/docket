@@ -64,3 +64,6 @@ else
 	echo "Executing: ${@}"
 	exec $@
 fi
+
+# Adding MOTD script
+cd /home/guest && rm -f /etc/update-motd.d/* && echo "\\033[1;33mWelcome to your CTFGuide Workspace. Compute is provided by STiBaRC.\nAll sessions are logged. Remember to follow our TOS when using this terminal. Happy Hacking!\n\n\\033[0m" | tee /etc/motd

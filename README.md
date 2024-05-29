@@ -2,32 +2,46 @@
   <img src="https://i.ibb.co/LJxxtc7/Untitled-design-16.png" alt="Banner">
 </p>
 
-# docket
+# Docket
 
-Spin up a container via an API endpoint. README in progress!
+Spin up an Alpine Container via an API endpoint.
 
 ## Installation
+1. Install Docker by following the instructions [here](https://docs.docker.com/get-docker/).
+2. Install Node.js by following the instructions [here](https://nodejs.org/en/download/).
+3. Clone the repository:
+4. Install dependencies:
 
-First you need to have Docker installed on your machine. You can install it by following the instructions [here](https://docs.docker.com/get-docker/).
-
-Ensure that you have Node.js installed on your machine. You can install it by following the instructions [here](https://nodejs.org/en/download/).
-
-[REDACTED : TODO ]
-
-After installing Docker, you can clone this repository by running `git clone https://github.com/ctfguide-tech/docket.git`
-
-You can install all the dependencies by running `npm install`.
-
-## Deploying
-TODO
+## Usage
+- Start the server:
+- Access API documentation at: http://localhost:YOUR_PORT_HERE/docs
 
 ## Endpoints
-This project uses JSDOC. You can access the docs by going to http://localhost:YOUR_PORT_HERE/docs
-
+- **POST /api/containers/create**
+  - Create a Docker container.
+  - Parameters: `username`, `password`, `commandsToRun`, `port`, `root`.
+- **GET /containers/:containerId/status**
+  - Check the status of a Docker container.
+- **DELETE /api/containers/:id**
+  - Delete a Docker container by ID.
+- **GET /api/containers/:id/login**
+  - DEPRECATED: Initiate login for a container.
 
 ## Dependencies
-
 - Express
 - Dockerode
 
+## Contributing
+1. Fork the repository.
+2. Create a new branch (`git checkout -b feature/awesome-feature`).
+3. Make your changes.
+4. Commit your changes (`git commit -am 'Add some feature'`).
+5. Push to the branch (`git push origin feature/awesome-feature`).
+6. Create a new Pull Request.
 
+## License
+This project is licensed under the MIT License.
+
+## Copyright
+&copy; CTFGuide Corporation 2024.
+Authored by Pranav Ramesh 2024.

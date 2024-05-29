@@ -5,7 +5,6 @@ import { create } from 'domain';
 import { sendMessage } from './discord.js';
 const docker = new Docker({ socketPath: "/var/run/docker.sock" });
 
-//let port = "5002"
 /**
  * Creates a Docker container with the specified username and password.
  * @param {string} username - The username for the container.
@@ -13,9 +12,15 @@ const docker = new Docker({ socketPath: "/var/run/docker.sock" });
  * @param {string} commandsToRun - The commands to run in the container. (Optional)
  * @returns {Promise<string>} The ID of the created container.
  */
-export async function createContainer(username, password, commandsToRun, port) {
+export async function createContainer(username, password, commandsToRun, port, root, node, image) {
 
   const userSetupCommands = commandsToRun;
+  const knownImages = ["ctfguide"];
+
+
+  if (!knownImages.includes(image)) {
+    return {"status": "error", "message": "You are attempting to use an image that is not supported by Docket."}
+  }
 
   sendMessage(`Spawning container :${port}.\n\nThe following commands are being run:\n + \`${commandsToRun}\` `)
 
@@ -28,7 +33,7 @@ export async function createContainer(username, password, commandsToRun, port) {
     Env: [
       "SIAB_USER=" + username,
       "SIAB_PASSWORD=" + password,
-      "SIAB_SUDO=true",
+      "SIAB_SUDO=" + root,
       "SIAB_GROUPID=1004",
       "SIAB_SSL=false",
       "SIAB_USERID=1004",
@@ -74,6 +79,35 @@ export async function createContainer(username, password, commandsToRun, port) {
 
   return containerId;
 }
+
+/**
+ * Checks the status of a Docker container.
+ * 
+ * @param {string} containerId - The ID of the Docker container to check.
+ * @param {object} node - The node associated with the container.
+ * @returns {Promise<object>} - A promise that resolves to an object containing the status and stats of the container.
+ * @throws {Error} - Throws an error if the container status or stats cannot be fetched.
+ */
+export async function checkContainer(containerId, node) {
+  try {
+
+    const container = docker.getContainer(containerId);
+    const stats = await container.stats({ stream: false });
+
+    if (!state.Running || state.Restarting || state.OOMKilled || state.Dead) {
+      return { status: 'Container is not running or has crashed', state };
+    }
+
+    return { status: 'Container is running', stats, state };
+
+
+  } catch (err) {
+    console.error(`Failed to fetch ${containerId}: ${error.message}`);
+    throw error; // Rethrow the error to handle it in the route
+  }
+}
+
+
 /**
  * Deletes a Docker container by ID and removes its ID from the text file.
  * @param {string} containerId - The ID of the Docker container to delete.

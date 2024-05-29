@@ -1,5 +1,5 @@
 import express from 'express';
-import { createContainer, deleteContainer, sendLoginCommandToContainer } from '../utils/dockerManager.js';
+import { createContainer, deleteContainer, sendLoginCommandToContainer, checkContainer } from '../utils/dockerManager.js';
 import cors from 'cors';
 
 const router = express.Router();
@@ -15,24 +15,52 @@ const router = express.Router();
  */
 
 router.post('/containers/create', async (req, res) => {
-  const { terminalUserName, terminalUserPassword, commandsToRun, port} = req.body;
+  const { terminalUserName, terminalUserPassword, commandsToRun, port, root} = req.body;
 
   // legacy support
   let username = terminalUserName;
   let password = terminalUserPassword;
 
   
-  if (!username || !password) {
-    return res.status(400).send("Username and password are required");
+  // validation
+  let errors = ["The following errors occured:"];
+  if (!username) errors.push("Missing username.");
+  if (!password) errors.push("Missing password.");
+  if (!port) errors.push("Missing port.");
+  if (!root) errors.push("Missing root value. (true/false)");
+
+  // if errors send back msg
+  if (errors.length > 1) {
+    return res.status(400).send(errors.join("\n"))
   }
 
   try {
-    const containerId = await createContainer(username, password, commandsToRun, port);
+    const containerId = await createContainer(username, password, commandsToRun, port, root);
     res.send({ containerId });
   } catch (error) {
     res.status(500).send(`Error creating container: ${error.message}`);
   }
 });
+
+
+/**
+ * @route GET /containers/:containerId/status
+ * @param {string} req.params.containerId - The ID of the Docker container to check.
+ * @returns {Object} 200 - An object containing the status and stats of the container
+ * @returns {Error} 500 - Error message if the container status or stats cannot be fetched
+ */
+app.get('/containers/:containerId/status', async (req, res) => {
+  const containerId = req.params.containerId;
+
+  try {
+    const result = await checkContainer(containerId, "mirai");
+    res.json(result);
+  } catch (err) {
+    console.error(`Failed to fetch ${containerId}: ${err.message}`);
+    res.status(500).json({ error: `Failed to fetch ${containerId}: ${err.message}` });
+  }
+});
+
 
 
 /**
