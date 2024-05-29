@@ -4,7 +4,7 @@
 
 # Docket
 
-Spin up an Alpine Container via an API endpoint.
+Spin up an containers via an API endpoint.
 
 ## Installation
 1. Install Docker by following the instructions [here](https://docs.docker.com/get-docker/).
@@ -26,6 +26,9 @@ Spin up an Alpine Container via an API endpoint.
   - Delete a Docker container by ID.
 - **GET /api/containers/:id/login**
   - DEPRECATED: Initiate login for a container.
+
+## Supported Images
+- ctfguide (Ubuntu 22.10 minimal with a few essential cyber related tools installed)
 
 ## Dependencies
 - Express
