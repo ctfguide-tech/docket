@@ -1,6 +1,7 @@
 import express from 'express';
 import { createContainer, deleteContainer, sendLoginCommandToContainer, checkContainer } from '../utils/dockerManager.js';
 import cors from 'cors';
+import { sendMessage } from '../utils/discord.js';
 
 const router = express.Router();
 
@@ -15,7 +16,7 @@ const router = express.Router();
  */
 
 router.post('/containers/create', async (req, res) => {
-  const { terminalUserName, terminalUserPassword, commandsToRun, port, root, node, image} = req.body;
+  const { terminalUserName, terminalUserPassword, commandsToRun, port, root} = req.body;
 
   // legacy support
   let username = terminalUserName;
@@ -35,9 +36,10 @@ router.post('/containers/create', async (req, res) => {
   }
 
   try {
-    const containerId = await createContainer(username, password, commandsToRun, port, root, node, image);
+    const containerId = await createContainer(username, password, commandsToRun, port, root);
     res.send({ containerId });
   } catch (error) {
+    sendMessage(`Docket couldn't assign port ${port} for ${username}.`)
     res.status(500).send(`Error creating container: ${error.message}`);
   }
 });
@@ -49,7 +51,7 @@ router.post('/containers/create', async (req, res) => {
  * @returns {Object} 200 - An object containing the status and stats of the container
  * @returns {Error} 500 - Error message if the container status or stats cannot be fetched
  */
-app.get('/containers/:containerId/status', async (req, res) => {
+router.get('/containers/:containerId/status', async (req, res) => {
   const containerId = req.params.containerId;
 
   try {

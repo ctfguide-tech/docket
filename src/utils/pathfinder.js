@@ -50,6 +50,10 @@ trainModel().then(() => {
   // predict best node
   function predictNode(cpuUsage, memoryUsage, diskUsage) {
     const prediction = model.predict(tf.tensor2d([[cpuUsage, memoryUsage, diskUsage]]));
+
+    /*
+    
+    */
     const predictedNode = prediction.argMax(1).dataSync()[0];
     return predictedNode;
   }
