@@ -62,7 +62,7 @@ export async function createContainer(username, password, commandsToRun, port, r
   // Run additional commands in the container
 
   await docker.getContainer(containerId).exec({
-    Cmd: ['sh', '-c', `export flag=flag123 && export fileID=1;2;3 && cd /home/guest && rm -f /etc/update-motd.d/* && echo "\\033[1;33mWelcome to your CTFGuide Workspace. Compute is provided by STiBaRC.\nAll sessions are logged. Remember to follow our TOS when using this terminal. Happy Hacking!\n\n\\033[0m" | tee /etc/motd && ${userSetupCommands}`], // Blue color, disable other MOTD scripts
+    Cmd: ['sh', '-c', `export flag=flag123 && export fileID=1@2@3 && cd /home/guest && rm -f /etc/update-motd.d/* && echo "\\033[1;33mWelcome to your CTFGuide Workspace. Compute is provided by STiBaRC.\nAll sessions are logged. Remember to follow our TOS when using this terminal. Happy Hacking!\n\n\\033[0m" | tee /etc/motd && ${userSetupCommands}`], // Blue color, disable other MOTD scripts
     AttachStdin: true,
     AttachStdout: true,
     AttachStderr: true,
