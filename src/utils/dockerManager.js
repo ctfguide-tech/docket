@@ -1,3 +1,4 @@
+
 import Docker from 'dockerode';
 import { appendContainerIdToFile } from './fileManager.js';
 import fs from 'fs/promises';
@@ -40,6 +41,8 @@ export async function createContainer(username, password, commandsToRun, port, r
       "SIAB_USERID=1004",
       "SIAB_USERCSS=Normal:-/etc/shellinabox/options-enabled/00+Black-on-White.css,Reverse:+/etc/shellinabox/options-enabled/00_White-On-Black.css;Colors:+/etc/shellinabox/options-enabled/01+Color-Terminal.css,Monochrome:-/etc/shellinabox/options-enabled/01_Monochrome.css",
       "SIAB_PORT=" + port,
+                "SIAB_FLAF=flag123",
+            "SIAB_fileTHING=1@2@3",
     ],
     ExposedPorts: {
       [`${port}/tcp`]: {} // Ensure the port is exposed
@@ -62,7 +65,7 @@ export async function createContainer(username, password, commandsToRun, port, r
   // Run additional commands in the container
 
   await docker.getContainer(containerId).exec({
-    Cmd: ['sh', '-c', `export flag=flag123 && export fileID=1@2@3 && cd /home/guest && rm -f /etc/update-motd.d/* && echo "\\033[1;33mWelcome to your CTFGuide Workspace. Compute is provided by STiBaRC.\nAll sessions are logged. Remember to follow our TOS when using this terminal. Happy Hacking!\n\n\\033[0m" | tee /etc/motd && ${userSetupCommands}`], // Blue color, disable other MOTD scripts
+    Cmd: ['sh', '-c', `echo "flag123" | sudo tee /etc/flag.txt && echo "export fileID=1@2@3" >> /etc/profile &&cd /home/guest && rm -f /etc/update-motd.d/* && echo "\\033[1;33mWelcome to your CTFGuide Workspace. Compute is provided by STiBaRC.\nAll sessions are logged. Remember to follow our TOS when using this terminal. Happy Hacking!\n\n\\033[0m" | tee /etc/motd && ${userSetupCommands}`], // Blue color, disable other MOTD scripts
     AttachStdin: true,
     AttachStdout: true,
     AttachStderr: true,
@@ -83,7 +86,7 @@ export async function createContainer(username, password, commandsToRun, port, r
 
 /**
  * Checks the status of a Docker container.
- * 
+ *
  * @param {string} containerId - The ID of the Docker container to check.
  * @param {object} node - The node associated with the container.
  * @returns {Promise<object>} - A promise that resolves to an object containing the status and stats of the container.
