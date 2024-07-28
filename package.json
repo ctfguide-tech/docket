@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@tensorflow/tfjs": "^4.19.0",
     "child_process": "^1.0.2",
     "cors": "^2.8.5",
     "dockerode": "^4.0.2",

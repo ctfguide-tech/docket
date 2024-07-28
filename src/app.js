@@ -29,7 +29,7 @@ app.use(express.json());
 
 
 app.use(cors({
-  origin: '*'
+  origin: ["https://preview.ctfguide.com", "https://ctfguide.com"]
 }));
 
 
