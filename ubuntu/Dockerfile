@@ -1,24 +1,18 @@
-FROM ubuntu:latest
+#FROM ubuntu:latest
+FROM wettyoss/wetty
 
-RUN apt-get update && apt-get install -y openssl curl openssh-client sudo nodejs npm &&  \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+USER root
 
-RUN npm install -g wetty
+# Add packages
+RUN apk add openssl curl sudo tshark nano nmap tcpdump aircrack-ng whois bind-tools netcat-openbsd
+RUN apk add hping3 --update-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing
 
-RUN apt-get update && apt-get install -y build-essential
-RUN apt-get install -y python3
-RUN apt-get install -y python3-pip
-RUN apt-get install -y vim 
-RUN apt install -y git
+#Kana Prerequisites
+RUN sudo apk update
+RUN sudo apk add musl-dev gcc
 
-EXPOSE 3000
-
-VOLUME /home
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
-
-CMD ["wetty"]
