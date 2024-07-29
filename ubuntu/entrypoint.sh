@@ -10,14 +10,16 @@ echo "SIAB_PASSWORD: $SIAB_PASSWORD"
 echo "SERVICE_NAME: $SERVICE_NAME"
 echo "MAX_CPU: $MAX_CPU"
 
-adduser -D -g $SIAB_USER  $SIAB_USER 
+adduser -D -g $SIAB_USER $SIAB_USER
 echo -e "$SIAB_PASSWORD\n$SIAB_PASSWORD" | passwd $SIAB_USER
 if [ $? -ne 0 ]; then
     echo "Failed to set password for $SIAB_USER"
     exit 1
 fi
-export BASEURL="/ctfterminal/$SERVICE_NAME"
-echo "$SIAB_USER ALL=(ALL) ALL" > /etc/sudoers.d/$SIAB_USER && chmod 0440 /etc/sudoers.d/$SIAB_USER
+
+if [ "$SIAB_SUDO" = true ]; then
+    echo "$SIAB_USER ALL=(ALL) ALL" > /etc/sudoers.d/$SIAB_USER && chmod 0440 /etc/sudoers.d/$SIAB_USER
+fi
 
 adduser -D -g appuser appuser
 
