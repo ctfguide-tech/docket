@@ -10,4 +10,4 @@ RUN apk add hping3 --update-cache --repository http://dl-cdn.alpinelinux.org/alp
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-CMD ["/entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
