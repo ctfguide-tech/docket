@@ -1,4 +1,3 @@
-
 import Docker from 'dockerode';
 import { appendContainerIdToFile } from './fileManager.js';
 import fs from 'fs/promises';
@@ -12,24 +11,16 @@ const docker = new Docker({ socketPath: "/var/run/docker.sock" });
  * @param {string} username - The username for the container.
  * @param {string} password - The password for the container.
  * @param {string} commandsToRun - The commands to run in the container. (Optional)
+ * @param {string} port - The port to expose.
+ * @param {boolean} root - Whether the user should have root privileges.
  * @returns {Promise<string>} The ID of the created container.
  */
 export async function createContainer(username, password, commandsToRun, port, root) {
-
   const userSetupCommands = commandsToRun;
-  /*
-  const knownImages = ["ctfguide"];
-
-
-  if (!knownImages.includes(image)) {
-    return {"status": "error", "message": "You are attempting to use an image that is not supported by Docket."}
-  }
-  */
-
-
+  console.log(`Creating terminal with username: ${username} and password: ${password}`)
   let container = await docker.createContainer({
-    Image: "ctfguide",
-    Cmd: [`shellinabox`],
+    Image: "ctfguide_wetty",
+    Cmd: [`/entrypoint.sh`],
     Tty: true,
     OpenStdin: true,
     Env: [
@@ -39,19 +30,18 @@ export async function createContainer(username, password, commandsToRun, port, r
       "SIAB_GROUPID=1004",
       "SIAB_SSL=false",
       "SIAB_USERID=1004",
-      "SIAB_USERCSS=Normal:-/etc/shellinabox/options-enabled/00+Black-on-White.css,Reverse:+/etc/shellinabox/options-enabled/00_White-On-Black.css;Colors:+/etc/shellinabox/options-enabled/01+Color-Terminal.css,Monochrome:-/etc/shellinabox/options-enabled/01_Monochrome.css",
       "SIAB_PORT=" + port,
-                "SIAB_FLAF=flag123",
-            "SIAB_fileTHING=1@2@3",
+      "SIAB_FLAF=flag123",
+      "SIAB_fileTHING=1@2@3",
     ],
     ExposedPorts: {
-      [`${port}/tcp`]: {} // Ensure the port is exposed
+      '3000/tcp': {} // Expose the default port 3000
     },
     HostConfig: {
       PortBindings: {
-        [`${port}/tcp`]: [
+        '3000/tcp': [
           {
-            HostPort: `${port}`
+            HostPort: `${port}` // Map the default port 3000 to the custom port
           }
         ]
       }
@@ -63,9 +53,8 @@ export async function createContainer(username, password, commandsToRun, port, r
   const containerId = containerInfo.Id;
 
   // Run additional commands in the container
-
   await docker.getContainer(containerId).exec({
-    Cmd: ['sh', '-c', `echo "flag123" | sudo tee /etc/flag.txt && echo "export fileID=1@2@3" >> /etc/profile &&cd /home/guest && rm -f /etc/update-motd.d/* && echo "\\033[1;33mWelcome to your CTFGuide Workspace. Compute is provided by STiBaRC.\nAll sessions are logged. Remember to follow our TOS when using this terminal. Happy Hacking!\n\n\\033[0m" | tee /etc/motd && ${userSetupCommands}`], // Blue color, disable other MOTD scripts
+    Cmd: ['sh', '-c', `echo "flag123" | sudo tee /etc/flag.txt && echo "export fileID=1@2@3" >> /etc/profile && cd /home/${username} && rm -f /etc/update-motd.d/* && echo "\\033[1;33mWelcome to your CTFGuide Workspace. Compute is provided by STiBaRC.\nAll sessions are logged. Remember to follow our TOS when using this terminal. Happy Hacking!\n\n\\033[0m" | tee /etc/motd && ${userSetupCommands}`], // Blue color, disable other MOTD scripts
     AttachStdin: true,
     AttachStdout: true,
     AttachStderr: true,
@@ -77,7 +66,6 @@ export async function createContainer(username, password, commandsToRun, port, r
       stream.pipe(process.stdout);
     });
   });
-
 
   await appendContainerIdToFile(containerId);
 
@@ -96,7 +84,7 @@ export async function checkContainer(containerId, node) {
   try {
 
     const container = docker.getContainer(containerId);
-    const stats = await container.stats({ stream: false });
+    const stats = await container.stats({ stream: true });
 
     if (!state.Running || state.Restarting || state.OOMKilled || state.Dead) {
       return { status: 'Container is not running or has crashed', state };
