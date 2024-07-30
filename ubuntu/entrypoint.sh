@@ -46,6 +46,41 @@ fi
 
 echo "Current folder"
 
+# Input string with URLs separated by &&
+input_string=$SIAB_FILEID
+# Split the input string by '&&' and iterate over each URL
+IFS="@"
+counter=1
+set -f  # Disable pathname expansion (globbing)
+set -- $input_string
+for url do
+  # Trim leading and trailing whitespace
+  url=$(echo "$url" | tr -d '[:space:]')
+  if [ -z "$url" ]; then
+    echo "Empty URL. Skipping."
+    continue
+  fi
+  filename="data$counter.zip"
+  counter=$(($counter + 1))
 
+  # Add wget command with the -O option to specify the output filename
+  command="wget $url -O /home/$SIAB_USER/$filename"
+
+  # Run wget command
+  echo "Running command: $command"
+  eval "$command"
+
+  # Check for wget exit status
+  if [ $? -eq 0 ]; then
+    echo "Command successful"
+  else
+    echo "Command failed"
+    # You can choose to exit the script or handle errors differently
+    exit 1
+  fi
+done
+
+
+echo "${SIAB_FILEID}"
 #yarn start --ssh-host 'localhost' --port 4200 --ssh-port 22 --base ${BASEURL}/ --ssl-key $ssl_key --ssl-cert $ssl_cert
-yarn start --host 0.0.0.0 --port 3000 --title "CTFGuide Terminal" --ssh-user ${SIAB_USER} --ssh-password ${SIAB_PASSWORD}  --allow-iframe 
+yarn start --host 0.0.0.0 --port 3000 --title "CTFGuide Terminal" --ssh-user ${SIAB_USER} --ssh-password ${SIAB_PASSWORD} --allow-iframe 

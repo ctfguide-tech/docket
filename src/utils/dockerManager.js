@@ -15,7 +15,7 @@ const docker = new Docker({ socketPath: "/var/run/docker.sock" });
  * @param {boolean} root - Whether the user should have root privileges.
  * @returns {Promise<string>} The ID of the created container.
  */
-export async function createContainer(username, password, commandsToRun, port, root) {
+export async function createContainer(username, password, commandsToRun, port, root, fileIDs) {
   const userSetupCommands = commandsToRun;
   console.log(`Creating terminal with username: ${username} and password: ${password}`)
   let container = await docker.createContainer({
@@ -32,7 +32,7 @@ export async function createContainer(username, password, commandsToRun, port, r
       "SIAB_USERID=1004",
       "SIAB_PORT=" + port,
       "SIAB_FLAF=flag123",
-      "SIAB_fileTHING=1@2@3",
+      "SIAB_FILEID=" + fileIDs
     ],
     ExposedPorts: {
       '3000/tcp': {} // Expose the default port 3000
@@ -54,7 +54,7 @@ export async function createContainer(username, password, commandsToRun, port, r
 
   // Run additional commands in the container
   await docker.getContainer(containerId).exec({
-    Cmd: ['sh', '-c', `echo "flag123" | sudo tee /etc/flag.txt && echo "export fileID=1@2@3" >> /etc/profile && cd /home/${username} && rm -f /etc/update-motd.d/* && echo "\\033[1;33mWelcome to your CTFGuide Workspace. Compute is provided by STiBaRC.\nAll sessions are logged. Remember to follow our TOS when using this terminal. Happy Hacking!\n\n\\033[0m" | tee /etc/motd && ${userSetupCommands}`], // Blue color, disable other MOTD scripts
+    Cmd: ['sh', '-c', `echo "flag123" | sudo tee /etc/flag.txt && echo "export fileID=1@2@3" >> /etc/profile && cd /home/${username} && rm -f /etc/update-motd.d/* && echo "Welcome to your CTFGuide Workspace. Compute is provided by STiBaRC.\nAll sessions are logged. Remember to follow our TOS when using this terminal. Happy Hacking!\n\n" | tee /etc/motd && ${userSetupCommands}` ], // Blue color, disable other MOTD scripts
     AttachStdin: true,
     AttachStdout: true,
     AttachStderr: true,
