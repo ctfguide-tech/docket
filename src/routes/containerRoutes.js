@@ -17,7 +17,8 @@ const router = express.Router();
 
 router.post('/containers/create', async (req, res) => {
   const { terminalUserName, terminalUserPassword, commandsToRun, port, root, fileIDs} = req.body;
-
+ console.log("cmds");
+console.log(commandsToRun);
   // legacy support
   let username = terminalUserName;
   let password = terminalUserPassword;
