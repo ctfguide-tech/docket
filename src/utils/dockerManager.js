@@ -16,7 +16,10 @@ const docker = new Docker({ socketPath: "/var/run/docker.sock" });
  * @returns {Promise<string>} The ID of the created container.
  */
 export async function createContainer(username, password, commandsToRun, port, root, fileIDs) {
-  const userSetupCommands = commandsToRun;
+  let userSetupCommands = "";
+  if (commandsToRun.length > 0) {
+    userSetupCommands = "&& " + commandsToRun;
+  }
   console.log(`Creating terminal with username: ${username} and password: ${password}`)
   let container = await docker.createContainer({
     Image: "ctfguide_wetty",
@@ -54,7 +57,7 @@ export async function createContainer(username, password, commandsToRun, port, r
 
   // Run additional commands in the container
   await docker.getContainer(containerId).exec({
-    Cmd: ['sh', '-c', `echo "flag123" | sudo tee /etc/flag.txt && echo "export fileID=1@2@3" >> /etc/profile && cd /home/${username} && rm -f /etc/update-motd.d/* && echo "Welcome to your CTFGuide Workspace. Compute is provided by STiBaRC.\nAll sessions are logged. Remember to follow our TOS when using this terminal. Happy Hacking!\n\n" | tee /etc/motd && ${userSetupCommands}` ], // Blue color, disable other MOTD scripts
+    Cmd: ['sh', '-c', `sudo apk add sudo && echo "flag123" | sudo tee /etc/flag.txt && echo "export fileID=1@2@3" | sudo tee -a /etc/profile && cd /home/${username} && sudo rm -f /etc/update-motd.d/* && echo -e "Welcome to your CTFGuide Workspace. Compute is provided by STiBaRC.\\nAll sessions are logged. Remember to follow our TOS when using this terminal. Happy Hacking!\\n\\n" | sudo tee /etc/motd ${userSetupCommands}` ],
     AttachStdin: true,
     AttachStdout: true,
     AttachStderr: true,
