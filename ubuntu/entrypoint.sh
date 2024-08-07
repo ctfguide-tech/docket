@@ -1,4 +1,3 @@
-
 #!/bin/sh
 
 if [ -n "$1" ] ; then
@@ -6,8 +5,8 @@ if [ -n "$1" ] ; then
         exit
 fi
 
-sudo apk add --no-cache python3 py3-pip
-pip3 install requests
+#sudo apk add --no-cache python3 py3-pip
+#pip3 install requests
 echo "SIAB_USER: $SIAB_USER"
 echo "SIAB_PASSWORD: $SIAB_PASSWORD"
 echo "SERVICE_NAME: $SERVICE_NAME"
@@ -46,13 +45,13 @@ if ! [ -f $ssl_key ] || ! [ -f $ssl_cert ] ; then
         openssl req -x509 -newkey rsa:4096 -keyout $ssl_key -out $ssl_cert \
                 -days 300000 -nodes -subj "/C=YZ/ST=Hello/L=Here/O=Company/OU=Org/CN=wetty"
 fi
-cd /home/$SIAB_USER
+#cd ~"$SIAB_USER"
 echo $PWD
 echo $SIAB_FILEID
 echo "$SIAB_FILEID" > filename.txt
 
 
 
-python3 fileHandler.py "$SIAB_FILEID"
+python3 /fileHandler.py "$SIAB_FILEID" "$SIAB_USER"
 #yarn start --ssh-host 'localhost' --port 4200 --ssh-port 22 --base ${BASEURL}/ --ssl-key $ssl_key --ssl-cert $ssl_cert
-yarn start --host 0.0.0.0 --port 3000 --title "CTFGuide Terminal" --ssh-user ${SIAB_USER} --ssh-password ${SIAB_PASSWORD} --allow-iframe
+yarn start --host 0.0.0.0 --port 3000 --title "CTFGuide Terminal" --ssh-user ${SIAB_USER} --ssh-password ${SIAB_PASSWORD} --allow-iframe 
