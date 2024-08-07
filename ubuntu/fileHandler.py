@@ -1,11 +1,12 @@
 import requests
 import sys
 
-if len(sys.argv) < 2 or len(sys.argv[1]) < 2:
+if len(sys.argv) < 3 or len(sys.argv[1]) < 2:
     sys.exit(0)
 argument = sys.argv[1]
 files = []
 name = []
+user = sys.argv[2]
 for i in argument.split("@"):
     temp = i.split("#")
     name.append(temp[0])
@@ -13,7 +14,7 @@ for i in argument.split("@"):
 
 for i in range(len(files)):
     url = files[i]
-    local_filename = name[i]
+    local_filename = "/home/"+user+"/"+name[i]
     try:
         with requests.get(url, stream=True) as response:
             response.raise_for_status()  # Check if the request was successful
