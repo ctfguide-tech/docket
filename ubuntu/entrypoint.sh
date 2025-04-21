@@ -55,4 +55,4 @@ echo "$SIAB_FILEID" > filename.txt
 
 python3 fileHandler.py "$SIAB_FILEID"
 #yarn start --ssh-host 'localhost' --port 4200 --ssh-port 22 --base ${BASEURL}/ --ssl-key $ssl_key --ssl-cert $ssl_cert
-yarn start --host 0.0.0.0 --port 3000 --title "CTFGuide Terminal" --ssh-user ${SIAB_USER} --ssh-password ${SIAB_PASSWORD} --allow-iframe
+yarn start --host 0.0.0.0 --port 3000 --title "CTFGuide Terminal" --ssh-user ${SIAB_USER} --ssh-password ${SIAB_PASSWORD} --allow-iframe --bypasshelmet

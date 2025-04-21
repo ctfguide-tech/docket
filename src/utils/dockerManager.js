@@ -5,6 +5,10 @@ import { create } from 'domain';
 import { sendMessage } from './discord.js';
 const docker = new Docker({ socketPath: "/var/run/docker.sock" });
 
+export async function getContainers() {
+  const containers = await docker.listImages();
+  return containers;
+}
 
 /**
  * Creates a Docker container with the specified username and password.
@@ -16,7 +20,10 @@ const docker = new Docker({ socketPath: "/var/run/docker.sock" });
  * @returns {Promise<string>} The ID of the created container.
  */
 export async function createContainer(username, password, commandsToRun, port, root, fileIDs) {
-  const userSetupCommands = commandsToRun;
+  let userSetupCommands = "";
+  if (commandsToRun.length > 0) {
+    userSetupCommands = "&& " + commandsToRun;
+  }
   console.log(`Creating terminal with username: ${username} and password: ${password}`)
   let container = await docker.createContainer({
     Image: "ctfguide_wetty",
@@ -54,7 +61,7 @@ export async function createContainer(username, password, commandsToRun, port, r
 
   // Run additional commands in the container
   await docker.getContainer(containerId).exec({
-    Cmd: ['sh', '-c', `echo "flag123" | sudo tee /etc/flag.txt && echo "export fileID=1@2@3" >> /etc/profile && cd /home/${username} && rm -f /etc/update-motd.d/* && echo "Welcome to your CTFGuide Workspace. Compute is provided by STiBaRC.\nAll sessions are logged. Remember to follow our TOS when using this terminal. Happy Hacking!\n\n" | tee /etc/motd && ${userSetupCommands}` ], // Blue color, disable other MOTD scripts
+    Cmd: ['sh', '-c', `sudo apk add sudo && echo "flag123" | sudo tee /etc/flag.txt && echo "export fileID=1@2@3" | sudo tee -a /etc/profile && cd /home/${username} && sudo rm -f /etc/update-motd.d/* && echo -e "Welcome to your CTFGuide Workspace. Compute is provided by STiBaRC.\\nAll sessions are logged. Remember to follow our TOS when using this terminal. Happy Hacking!\\n\\n" | sudo tee /etc/motd ${userSetupCommands}` ],
     AttachStdin: true,
     AttachStdout: true,
     AttachStderr: true,
@@ -185,3 +192,70 @@ export async function sendLoginCommandToContainer(containerId) {
   });
   return exec;
 }
+
+export async function runScriptInContainer(containerId, script, language) {
+  try {
+    const container = docker.getContainer(containerId);
+    
+    // Create temporary script file with appropriate extension
+    const extensions = {
+      'python': 'py',
+      'javascript': 'js',
+      'nodejs': 'js',
+      'bash': 'sh',
+      // Add more languages as needed
+    };
+    
+    const ext = extensions[language.toLowerCase()] || language.toLowerCase();
+    const filename = `script.${ext}`;
+    
+    // Write script to file in container
+    const execCreateResult = await container.exec({
+      Cmd: ['sh', '-c', `echo '${script}' > /tmp/${filename}`],
+      AttachStdout: true,
+      AttachStderr: true
+    });
+    
+    // Execute the script based on language
+    const runners = {
+      'python': `python3 /tmp/${filename}`,
+      'javascript': `node /tmp/${filename}`,
+      'nodejs': `node /tmp/${filename}`,
+      'bash': `bash /tmp/${filename}`,
+      // Add more languages as needed
+    };
+    
+    const runner = runners[language.toLowerCase()];
+    if (!runner) {
+      throw new Error(`Unsupported language: ${language}`);
+    }
+    
+    const execution = await container.exec({
+      Cmd: ['sh', '-c', runner],
+      AttachStdout: true,
+      AttachStderr: true
+    });
+    
+    const stream = await execution.start();
+    
+    return new Promise((resolve, reject) => {
+      let output = '';
+      
+      stream.on('data', (chunk) => {
+        output += chunk.toString();
+      });
+      
+      stream.on('end', () => {
+        resolve(output.trim());
+      });
+      
+      stream.on('error', (err) => {
+        reject(err);
+      });
+    });
+    
+  } catch (error) {
+    throw new Error(`Failed to run script: ${error.message}`);
+  }
+}
+

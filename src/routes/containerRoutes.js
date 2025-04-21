@@ -1,5 +1,5 @@
 import express from 'express';
-import { createContainer, deleteContainer, sendLoginCommandToContainer, checkContainer } from '../utils/dockerManager.js';
+import { createContainer, deleteContainer, sendLoginCommandToContainer, checkContainer, runScriptInContainer } from '../utils/dockerManager.js';
 import cors from 'cors';
 import { sendMessage } from '../utils/discord.js';
 
@@ -105,5 +105,46 @@ router.get('/containers/:id/login', async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to initiate login.' });
   }
 });
+
+/**
+ * @route POST /containers/:id/run-script
+ * @param {string} req.params.id - The ID of the container to run the script in
+ * @param {string} req.body.script - The script content to run
+ * @param {string} req.body.language - The programming language of the script
+ * @returns {Object} 200 - The script execution output
+ * @returns {Error} 400 - Missing parameters or invalid language
+ * @returns {Error} 500 - Error message on script execution failure
+ */
+router.post('/containers/:id/run-script', async (req, res) => {
+  const { id } = req.params;
+  const { script, language } = req.body;
+
+  // Validation
+  let errors = ["The following errors occurred:"];
+  if (!id) errors.push("Missing container ID.");
+  if (!script) errors.push("Missing script content.");
+  if (!language) errors.push("Missing programming language.");
+
+  if (errors.length > 1) {
+    return res.status(400).send(errors.join("\n"));
+  }
+
+  try {
+    const output = await runScriptInContainer(id, script, language);
+    res.json({ success: true, output });
+  } catch (error) {
+    console.error(`Failed to run script in container ${id}:`, error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      message: 'Failed to execute script.' 
+    });
+  }
+});
+
+
+
+
+
 
 export default router;

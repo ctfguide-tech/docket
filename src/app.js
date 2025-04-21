@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import containerRoutes from './routes/containerRoutes.js';
+import challengeContainerRoutes from './routes/challengeContainerRoutes.js';
 import { deleteContainersFromFile } from './utils/dockerManager.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -29,7 +30,9 @@ app.use(express.json());
 
 
 app.use(cors({
-  origin: ["https://preview.ctfguide.com", "https://ctfguide.com"]
+  origin: ["https://preview.ctfguide.com", "https://ctfguide.com", 
+    "http://localhost:3000"
+  ]
 }));
 
 
@@ -109,7 +112,10 @@ app.get('/client', (req, res) => {
 deleteContainersFromFile(filePath).then(() => {
   //sendMessage("All containers have been purged. Base port starting at 5000.")
 
+  app.use('/api', challengeContainerRoutes);
+
   app.use('/api', requireApiToken, containerRoutes);
+  
   let containerAmount = getRunningContainersCount();
   if (containerAmount > 0) {
     console.log(`There are still ${containerAmount} running containers. These were likely not created by Docket.`);
