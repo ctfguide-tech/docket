@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CTFGuide Challenge</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+        h1 { color: #4A90E2; }
+    </style>
+</head>
+<body>
+    <h1>Hello from CTFGuide!</h1>
+    <p>This is a sample web challenge container.</p>
+</body>
+</html>
