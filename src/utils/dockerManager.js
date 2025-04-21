@@ -5,6 +5,10 @@ import { create } from 'domain';
 import { sendMessage } from './discord.js';
 const docker = new Docker({ socketPath: "/var/run/docker.sock" });
 
+export async function getContainers() {
+  const containers = await docker.listImages();
+  return containers;
+}
 
 /**
  * Creates a Docker container with the specified username and password.
@@ -188,3 +192,70 @@ export async function sendLoginCommandToContainer(containerId) {
   });
   return exec;
 }
+
+export async function runScriptInContainer(containerId, script, language) {
+  try {
+    const container = docker.getContainer(containerId);
+    
+    // Create temporary script file with appropriate extension
+    const extensions = {
+      'python': 'py',
+      'javascript': 'js',
+      'nodejs': 'js',
+      'bash': 'sh',
+      // Add more languages as needed
+    };
+    
+    const ext = extensions[language.toLowerCase()] || language.toLowerCase();
+    const filename = `script.${ext}`;
+    
+    // Write script to file in container
+    const execCreateResult = await container.exec({
+      Cmd: ['sh', '-c', `echo '${script}' > /tmp/${filename}`],
+      AttachStdout: true,
+      AttachStderr: true
+    });
+    
+    // Execute the script based on language
+    const runners = {
+      'python': `python3 /tmp/${filename}`,
+      'javascript': `node /tmp/${filename}`,
+      'nodejs': `node /tmp/${filename}`,
+      'bash': `bash /tmp/${filename}`,
+      // Add more languages as needed
+    };
+    
+    const runner = runners[language.toLowerCase()];
+    if (!runner) {
+      throw new Error(`Unsupported language: ${language}`);
+    }
+    
+    const execution = await container.exec({
+      Cmd: ['sh', '-c', runner],
+      AttachStdout: true,
+      AttachStderr: true
+    });
+    
+    const stream = await execution.start();
+    
+    return new Promise((resolve, reject) => {
+      let output = '';
+      
+      stream.on('data', (chunk) => {
+        output += chunk.toString();
+      });
+      
+      stream.on('end', () => {
+        resolve(output.trim());
+      });
+      
+      stream.on('error', (err) => {
+        reject(err);
+      });
+    });
+    
+  } catch (error) {
+    throw new Error(`Failed to run script: ${error.message}`);
+  }
+}
+
