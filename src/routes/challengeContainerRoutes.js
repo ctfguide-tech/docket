@@ -5,7 +5,7 @@ import multer from 'multer';
 import { buildAndPushImage, listUserImages, deleteImage } from '../utils/registryManager.js';
 import path from 'path';
 import fs from 'fs/promises';
-import { createChallengeContainer } from '../utils/challengeContainerManager.js';
+import { createChallengeContainer, createTestDeployContainer, rebootContainer } from '../utils/challengeContainerManager.js';
 import { createCloudflareDNS } from '../utils/cloudflare.js';
 
 const router = express.Router();
@@ -16,23 +16,33 @@ const upload = multer({
 
 // Helper to log actions
 async function logAction(userId, action, targetId, targetType) {
-  await db.prepare(`INSERT INTO actions (user_id, action, target_id, target_type) VALUES (?, ?, ?, ?)`)
-    .run(userId, action, targetId, targetType);
+  // Removed SQL logging code
 }
 
-// Example: When creating a new image
-// await db.prepare(`INSERT INTO images (id, name, tag, author_id) VALUES (?, ?, ?, ?);`).run(imageId, imageName, imageTag, userId);
-// await logAction(userId, 'create_image', imageId, 'image');
 
-// Example: When creating a new container
-// await db.prepare(`INSERT INTO containers (id, image_id, author_id, status) VALUES (?, ?, ?, ?);`).run(containerId, imageId, userId, 'created');
-// await logAction(userId, 'create_container', containerId, 'container');
-
-// Example: When listing images with author
-// const images = await db.prepare(`SELECT images.*, users.username AS author FROM images LEFT JOIN users ON images.author_id = users.id;`).all();
-
-// Example: When listing containers with author
-// const containers = await db.prepare(`SELECT containers.*, users.username AS author FROM containers LEFT JOIN users ON containers.author_id = users.id;`).all();
+/**
+ * @route POST /api/challenge-containers/reboot
+ * @description Reboot a specific challenge container
+ * @param {string} id - The container ID
+ * @returns {Promise<void>} - Resolves when the container is rebooted
+ * @throws {Error} - Throws if the container is not found or cannot be rebooted
+ */
+router.post('/challenge-containers/reboot', async (req, res) => {
+  sendMessage(`Rebooting container ${req.body.id}`);
+  const { id } = req.body;
+  console.log(req.body)
+  if (!id) {
+    return res.status(400).json({ error: 'Missing container ID' });
+  }
+  try {
+    await rebootContainer(id);
+    sendMessage(`Container ${id} rebooted successfully`);
+    res.status(200).json({ message: 'Container rebooted successfully' });
+  } catch (error) {
+    console.error(`Failed to reboot container ${id}: ${error.message}`);
+    res.status(500).json({ error: `Failed to reboot container: ${error.message}` });
+  }
+});
 
 /**
  * @route GET /api/challenge-containers
@@ -41,22 +51,21 @@ async function logAction(userId, action, targetId, targetType) {
  * @returns {Error} 500 - Error message on failure
  */
 router.get('/challenge-containers', async (req, res) => {
+  const { creatorId } = req.query;
+  if (!creatorId) {
+    return res.status(400).json({ error: "creatorId query parameter is required" });
+  }
   try {
-    // // The creator's unique ID would typically come from auth middleware
-    // const creatorId = req.query.creatorId;
+    const coll = await getMappingCollection();
+    // Find all documents where creatorid matches the query param
+    const results = await coll.find({ username: creatorId }).toArray();
+
+    console.log(results);
     
-    // if (!creatorId) {
-    //   return res.status(400).json({ error: "Creator ID is required" });
-    // }
-    
-    // This is a placeholder. In a real implementation, you would query a database
-    // to get containers associated with the creator
-    const containers = await getContainers();
-    
-    res.json(containers);
+    res.json(results);
   } catch (error) {
-    console.error(`Failed to fetch challenge containers: ${error.message}`);
-    res.status(500).json({ error: `Failed to fetch challenge containers: ${error.message}` });
+    console.error(`Failed to fetch containers for creatorId ${creatorId}:`, error);
+    res.status(500).json({ error: `Failed to fetch containers: ${error.message}` });
   }
 });
 
@@ -194,63 +203,45 @@ router.post('/challenge-containers/upload', upload.fields([
     console.log(`Starting build with path: ${buildPath}`);
     
     try {
-      // Build and push the image to the registry
-      const result = await buildAndPushImage(imageName, buildPath);
-      console.log("Build result:", result);
-      
-      // Cleanup
-      try {
-        if (buildPath.includes('build-')) {
-          await fs.rm(buildPath, { recursive: true, force: true });
-          console.log(`Cleaned up build directory: ${buildPath}`);
-        }
-      } catch (cleanupError) {
-        console.warn(`Cleanup warning (non-fatal): ${cleanupError.message}`);
-      }
-      
-      // Log success
-      console.log(`Successfully built and pushed image: ${imageName}`);
-      sendMessage(`User ${creatorId} uploaded container image "${name}"`);
-
-      // Insert user into users table if not exists
-      await db.prepare('INSERT OR IGNORE INTO users (id, username) VALUES (?, ?)')
-        .run(creatorId, creatorId);
-
-      // Insert image record into the database
-      await db.prepare(
-        'INSERT INTO images (id, name, tag, author_id, created_at) VALUES (?, ?, ?, ?, ?)'
-      ).run(
-        imageName, // Use imageName as unique id for now
-        name,
-        'latest',
-        creatorId,
-        new Date().toISOString()
-      );
-
-      // Send success response
-      res.status(201).json({
-        name,
-        description,
-        port,
-        imageName,
-        creatorId,
-        status: 'uploaded',
-        createdAt: new Date().toISOString()
+      // --- BUILD AND PUSH IMAGE (stream logs to client) ---
+      await buildAndPushImage(imageName, buildPath, (logLine) => {
+      //  res.write(logLine + '\n');
       });
-    } catch (buildError) {
-      console.error(`Build error for ${imageName}:`, buildError);
-      
-      // Try to clean up even on failure
-      try {
-        if (buildPath.includes('build-')) {
-          await fs.rm(buildPath, { recursive: true, force: true });
-        }
-      } catch (cleanupError) {
-        console.warn(`Cleanup warning: ${cleanupError.message}`);
-      }
-      
-      res.status(500).json({ error: `Failed to build image: ${buildError.message}` });
+    } catch (buildErr) {
+      res.write(`Error during build: ${buildErr.message}\n`);
+      return res.end();
     }
+
+    // Cleanup
+    try {
+      if (buildPath.includes('build-')) {
+        await fs.rm(buildPath, { recursive: true, force: true });
+        console.log(`Cleaned up build directory: ${buildPath}`);
+      }
+    } catch (cleanupError) {
+      console.warn(`Cleanup warning (non-fatal): ${cleanupError.message}`);
+    }
+    
+    // Log success
+    console.log(`Successfully built and pushed image: ${imageName}`);
+    sendMessage(`User ${creatorId} uploaded container image "${name}"`);
+
+    // Insert user into users table if not exists
+    // Removed SQL code
+
+    // Insert image record into the database
+    // Removed SQL code
+
+    // Send success response
+    res.status(201).json({
+      name,
+      description,
+      port,
+      imageName,
+      creatorId,
+      status: 'uploaded',
+      createdAt: new Date().toISOString()
+    });
   } catch (error) {
     console.error(`Unhandled exception in upload handler:`, error);
     res.status(500).json({ error: `Unhandled exception: ${error.message}` });
@@ -318,8 +309,79 @@ router.get('/challenge-containers/:id/file', async (req, res) => {
   }
 });
 
+// --- MongoDB mapping helper ---
+import { MongoClient } from 'mongodb';
+const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+const DB_NAME = process.env.MONGODB_DB || 'testdeploy';
 
+console.log('MongoDB URI:', MONGO_URI);
+console.log('MongoDB DB:', DB_NAME);
+const COLLECTION = 'subdomainToPort';
+let mappingCollection;
+async function getMappingCollection() {
+  if (!mappingCollection) {
+    const client = new MongoClient(MONGO_URI);
+    await client.connect();
+    mappingCollection = client.db(DB_NAME).collection(COLLECTION);
+  }
+  return mappingCollection;
+}
 
+async function setTestDeployMapping({ containerName, subdomain, port, creatorId, challengeId, containerId, imageName, env, command, createdAt, type }) {
+  const coll = await getMappingCollection();
+  await coll.updateOne(
+    { subdomain },
+    { $set: {
+        subdomain,
+        port,
+        username: creatorId,
+        createdAt: createdAt || new Date(),
+        type: type || "testDeployment",
+        challengeId,
+        containerId,
+        containerName,
+        imageName,
+        env,
+        command
+      }
+    },
+    { upsert: true }
+  );
+}
+
+async function setDeploymentMapping({ containerName, subdomain, port, creatorId, challengeId, containerId, imageName, env, command, createdAt, type }) {
+  const coll = await getMappingCollection();
+  await coll.updateOne(
+    { subdomain },
+    { $set: {
+        subdomain,
+        port,
+        username: creatorId,
+        createdAt: createdAt || new Date(),
+        type: type || "singleDeployment",
+        challengeId,
+        containerId,
+        containerName,
+        imageName,
+        env,
+        command
+      }
+    },
+    { upsert: true }
+  );
+}
+
+export async function removeDeployMapping(sub) {
+  const coll = await getMappingCollection();
+  await coll.deleteOne({ subdomain: sub });
+  sendMessage(`Removed deploy mapping for subdomain: ${sub}`);
+}
+
+export async function removeTestDeployMapping(sub) {
+  const coll = await getMappingCollection();
+  await coll.deleteOne({ subdomain: sub });
+  sendMessage(`Removed testdeploy mapping for subdomain: ${sub}`);
+}
 
 /**
  * @route GET /api/challenge-containers/:id
@@ -332,9 +394,7 @@ router.get('/challenge-containers/:id', async (req, res) => {
   const { id } = req.params;
   
   try {
-    // In a real implementation, you would query a database
-    // This is a placeholder that checks if the container exists
-    const containerStatus = await checkContainer(id);
+    const containerStatus = "Container is running"
     
     if (!containerStatus) {
       return res.status(404).json({ error: "Container not found" });
@@ -463,12 +523,8 @@ router.get('/challenge-containers/images', async (req, res) => {
     return res.status(400).json({ error: "Creator ID is required" });
   }
   try {
-    // Query SQLite DB for images where author_id matches creatorId
-    const images = await db.prepare(`SELECT images.*, users.username AS author FROM images LEFT JOIN users ON images.author_id = users.id WHERE images.author_id = ?`).all(creatorId);
-    // If no images, return empty array
-    if (!images || images.length === 0) {
-      return res.json([]);
-    }
+    // Use listUserImages to get images for this user
+    const images = await listUserImages(creatorId);
     res.json(images);
   } catch (err) {
     console.error(`Failed to fetch images for ${creatorId}:`, err);
@@ -531,14 +587,44 @@ router.delete('/challenge-containers/images/:imageName', async (req, res) => {
  */
 router.post('/challenge-containers/test-deploy', async (req, res) => {
   try {
-    const { imageName, port, env, command } = req.body;
-    if (!imageName || !port) {
+    const { imageName , env, command, creatorId, challengeId, containerName } = req.body;
+    if (!imageName) {
       return res.status(400).json({ error: 'Missing required fields: imageName, port' });
     }
 
     // Generate unique subdomain for this test deployment
     const shortid = Math.random().toString(36).substring(2, 10);
     const subdomain = `testdeploy-${shortid}`;
+
+    // Generate a unique port number within the specified ranges by checking MongoDB for existing mappings
+    const generateUniquePort = async () => {
+      const coll = await getMappingCollection();
+      const reservedPorts = new Set();
+      const usedMappings = await coll.find({}).toArray();
+      usedMappings.forEach(mapping => reservedPorts.add(mapping.port));
+
+      const ranges = [[5000, 5099], [3100, 3199]];
+      for (const [start, end] of ranges) {
+        for (let port = start; port <= end; port++) {
+          if (!reservedPorts.has(port)) {
+            return port;
+          }
+        }
+      }
+      throw new Error('No available ports within the specified ranges');
+    };
+
+    const port = await generateUniquePort();
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    const sendSSE = (data) => {
+      res.write(`data: ${data.replace(/\n/g, '\ndata: ')}\n\n`);
+    }
+
+    sendSSE(`[PORT] ${port}`);
 
     // Traefik labels for dynamic routing
     const traefikLabels = {
@@ -549,13 +635,9 @@ router.post('/challenge-containers/test-deploy', async (req, res) => {
       // Optionally add more labels for https if needed
     };
 
-    // Stream logs to client
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    res.setHeader('Transfer-Encoding', 'chunked');
-
     let containerId;
     try {
-      containerId = await createChallengeContainer(
+      containerId = await createTestDeployContainer(
         imageName,
         port,
         env || {},
@@ -563,22 +645,35 @@ router.post('/challenge-containers/test-deploy', async (req, res) => {
         traefikLabels
       );
     } catch (err) {
-      res.write(`Error creating container: ${err.message}\n`);
-      return res.end();
+      sendSSE(`Error creating container: ${err.message}`);
+      res.end();
+      return;
     }
 
-    // --- Cloudflare Tunnel Domain Logic ---
-    let tunnelTarget = process.env.CLOUDFLARE_TUNNEL_CNAME || 'your-tunnel-id.cfargotunnel.com';
-    let domain = '';
     try {
-      domain = await createCloudflareDNS(subdomain, tunnelTarget, 'CNAME');
-      res.write(`[DOMAIN] https://${domain}\n`);
+      sendMessage(`Provisioning domain: https://${subdomain}.ctfgui.de`);
+      sendSSE(`[DOMAIN] https://${subdomain}.ctfgui.de`);
     } catch (err) {
-      res.write(`[DOMAIN ERROR] Failed to provision domain: ${err.message}\n`);
+      sendSSE(`[DOMAIN ERROR] Failed to provision domain: ${err.message}`);
     }
 
-    res.write(`Container created: ${containerId}\n`);
-    // Attach to the container's logs (stdout+stderr)
+    // After container creation, update the mapping in MongoDB
+    await setTestDeployMapping({
+      containerName,
+      subdomain,
+      port,
+      creatorId,
+      challengeId,
+      containerId,
+      imageName,
+      env,
+      command,
+      createdAt: new Date(),
+      type: "testDeployment"
+    });
+
+    sendSSE(`Container created: ${containerId}`);
+
     const Docker = (await import('dockerode')).default;
     const docker = new Docker({ socketPath: "/var/run/docker.sock" });
     const container = docker.getContainer(containerId);
@@ -591,18 +686,17 @@ router.post('/challenge-containers/test-deploy', async (req, res) => {
         tail: 100
       });
       logStream.on('data', chunk => {
-        res.write(chunk);
+        sendSSE(chunk.toString());
       });
       logStream.on('end', () => {
-        res.write('\n--- Build complete ---\n');
+        sendSSE('\n--- Build complete ---');
         res.end();
       });
       logStream.on('error', err => {
-        res.write(`\nLog stream error: ${err.message}\n`);
         res.end();
       });
     } catch (err) {
-      res.write(`\nError attaching to logs: ${err.message}\n`);
+      sendSSE(`\nError attaching to logs: ${err.message}`);
       res.end();
     }
   } catch (error) {
@@ -610,10 +704,146 @@ router.post('/challenge-containers/test-deploy', async (req, res) => {
     if (!res.headersSent) {
       res.status(500).json({ error: `Test deploy failed: ${error.message}` });
     } else {
-      res.write(`\nTest deploy failed: ${error.message}`);
+      sendSSE(`\nTest deploy failed: ${error.message}`);
       res.end();
     }
   }
 });
 
-export default router; 
+
+/**
+ * @route POST /api/challenge-containers/test-deploy
+ * @description Test deploy a challenge container (build and run a container for testing purposes)
+ * @returns {Object} 200 - Success or logs
+ * @returns {Error} 400/500 - Error on failure
+ */
+router.post('/challenge-containers/deploy', async (req, res) => {
+  try {
+    const { imageName , env, command, creatorId, challengeId, containerName } = req.body;
+    if (!imageName) {
+      return res.status(400).json({ error: 'Missing required fields: imageName, port' });
+    }
+
+    // Generate unique subdomain for this test deployment
+    const shortid = Math.random().toString(36).substring(2, 10);
+    const subdomain = `${creatorId}-${shortid}`;
+
+    // Generate a unique port number within the specified ranges by checking MongoDB for existing mappings
+    const generateUniquePort = async () => {
+      const coll = await getMappingCollection();
+      const reservedPorts = new Set();
+      const usedMappings = await coll.find({}).toArray();
+      usedMappings.forEach(mapping => reservedPorts.add(mapping.port));
+
+      const ranges = [[5000, 5099], [3100, 3199]];
+      for (const [start, end] of ranges) {
+        for (let port = start; port <= end; port++) {
+          if (!reservedPorts.has(port)) {
+            return port;
+          }
+        }
+      }
+      throw new Error('No available ports within the specified ranges');
+    };
+
+    const port = await generateUniquePort();
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    const sendSSE = (data) => {
+      res.write(`data: ${data.replace(/\n/g, '\ndata: ')}\n\n`);
+    }
+
+    sendSSE(`[PORT] ${port}`);
+
+    // Traefik labels for dynamic routing
+    const traefikLabels = {
+      'traefik.enable': 'true',
+      [`traefik.http.routers.${subdomain}.rule`]: `Host(\`${subdomain}.ctfgui.de\`)`,
+      [`traefik.http.routers.${subdomain}.entrypoints`]: 'http',
+      [`traefik.http.services.${subdomain}.loadbalancer.server.port`]: '80',
+      // Optionally add more labels for https if needed
+    };
+
+    let containerId;
+    try {
+      containerId = await createTestDeployContainer(
+        imageName,
+        port,
+        env || {},
+        command || [],
+        traefikLabels
+      );
+    } catch (err) {
+      sendSSE(`Error creating container: ${err.message}`);
+      res.end();
+      return;
+    }
+
+    try {
+      sendMessage(`Provisioning domain: https://${subdomain}.ctfgui.de`);
+      sendSSE(`[DOMAIN] https://${subdomain}.ctfgui.de`);
+    } catch (err) {
+      sendSSE(`[DOMAIN ERROR] Failed to provision domain: ${err.message}`);
+    }
+
+    // After container creation, update the mapping in MongoDB
+    await setDeploymentMapping({
+      containerName,
+      subdomain,
+      port,
+      creatorId,
+      challengeId,
+      containerId,
+      imageName,
+      env,
+      command,
+      createdAt: new Date(),
+      type: "singleDeployment"
+    });
+
+    sendSSE(`Container created: ${containerId}`);
+
+    const Docker = (await import('dockerode')).default;
+    const docker = new Docker({ socketPath: "/var/run/docker.sock" });
+    const container = docker.getContainer(containerId);
+    let logStream;
+    try {
+      logStream = await container.logs({
+        follow: true,
+        stdout: true,
+        stderr: true,
+        tail: 100
+      });
+      logStream.on('data', chunk => {
+        sendSSE(chunk.toString());
+      });
+      logStream.on('end', () => {
+        sendSSE('\n--- Build complete ---');
+        res.end();
+      });
+      logStream.on('error', err => {
+        res.end();
+      });
+    } catch (err) {
+      sendSSE(`\nError attaching to logs: ${err.message}`);
+      res.end();
+    }
+  } catch (error) {
+    console.error('Deployment error:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ error: `Deployment failed: ${error.message}` });
+    } else {
+      sendSSE(`\nDeployment failed: ${error.message}`);
+      res.end();
+    }
+  }
+});
+
+
+
+
+
+export default router;

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Testdeploy Mapping Visualizer</title>
+  <style>
+    :root {
+      --bg: #181c24;
+      --surface: #232837;
+      --accent: #4f8cff;
+      --text: #e6eaf3;
+      --text-muted: #7c8591;
+      --border: #32384a;
+      --table-header: #232b3a;
+      --table-row-alt: #222635;
+      --chip-bg: #2a3145;
+      --chip-text: #8cc4ff;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      min-height: 100vh;
+    }
+    h1 {
+      color: var(--accent);
+      font-size: 2.2rem;
+      margin: 32px 0 24px 0;
+      text-align: center;
+      letter-spacing: 1px;
+      font-weight: 700;
+    }
+    table {
+      width: 96vw;
+      margin: 0 auto 32px auto;
+      border-radius: 12px;
+      background: var(--surface);
+      overflow: hidden;
+      box-shadow: 0 4px 32px #0002;
+    }
+    thead {
+      background: var(--table-header);
+    }
+    th, td {
+      border: none;
+      padding: 12px 14px;
+      text-align: left;
+    }
+    th {
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 1.05rem;
+      letter-spacing: 0.5px;
+      background: var(--table-header);
+    }
+    tbody tr:nth-child(odd) {
+      background: var(--table-row-alt);
+    }
+    tbody tr:nth-child(even) {
+      background: var(--surface);
+    }
+    td {
+      color: var(--text);
+      font-size: 0.98rem;
+      vertical-align: top;
+      border-bottom: 1px solid var(--border);
+    }
+    td .chip {
+      display: inline-block;
+      background: var(--chip-bg);
+      color: var(--chip-text);
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 0.88em;
+      margin-right: 2px;
+      margin-bottom: 2px;
+    }
+    td pre {
+      margin: 0;
+      background: none;
+      color: var(--text-muted);
+      font-size: 0.91em;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    @media (max-width: 900px) {
+      table, thead, tbody, tr, th, td { font-size: 0.92em; }
+      th, td { padding: 7px 5px; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Testdeploy Mapping Visualizer</h1>
+  <table id="mappingTable">
+    <thead>
+      <tr>
+        <th>Subdomain</th>
+        <th>Port</th>
+        <th>Challenge Name</th>
+        <th>Container ID</th>
+        <th>Image</th>
+        <th>Username</th>
+        <th>Challenge ID</th>
+        <th>Created At</th>
+        <th>Type</th>
+        <th>Env</th>
+        <th>Command</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <script>
+    function fmt(val) {
+      if (!val) return '';
+      if (typeof val === 'object') {
+        // Render as chips for env/command, or prettify JSON for others
+        if (Array.isArray(val)) {
+          return val.map(v => `<span class="chip">${v}</span>`).join('');
+        } else if (val && Object.keys(val).length > 0) {
+          return `<pre>${JSON.stringify(val, null, 2)}</pre>`;
+        } else {
+          return '';
+        }
+      }
+      return val;
+    }
+    function fmtDate(val) {
+      if (!val) return '';
+      try { return new Date(val).toLocaleString(); } catch { return val; }
+    }
+    async function fetchMap() {
+      const res = await fetch('/api/map');
+      const data = await res.json();
+      const tbody = document.querySelector('#mappingTable tbody');
+      tbody.innerHTML = '';
+      Object.entries(data).forEach(([sub, doc]) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${sub}</td>
+          <td>${fmt(doc.port)}</td>
+          <td>${fmt(doc.containerName)}</td>
+          <td>${fmt(doc.containerId)}</td>
+          <td>${fmt(doc.imageName)}</td>
+          <td>${fmt(doc.username)}</td>
+          <td>${fmt(doc.challengeId)}</td>
+          <td>${fmtDate(doc.createdAt)}</td>
+          <td>${fmt(doc.type)}</td>
+          <td>${fmt(doc.env)}</td>
+          <td>${fmt(doc.command)}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+    fetchMap();
+    setInterval(fetchMap, 5000);
+  </script>
+</body>
+</html>

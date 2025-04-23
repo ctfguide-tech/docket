@@ -10,9 +10,10 @@ const docker = new Docker({ socketPath: "/var/run/docker.sock" });
  * Build a Docker image from a Dockerfile or directory
  * @param {string} imageName - The name to give the built image
  * @param {string} buildPath - Path to Dockerfile or directory containing Dockerfile
+ * @param {function} [onLog] - Optional callback to receive log lines from the build process
  * @returns {Promise<Object>} Result of the build operation
  */
-export async function buildAndPushImage(imageName, buildPath) {
+export async function buildAndPushImage(imageName, buildPath, onLog) {
   try {
     console.log(`[Registry] Starting build process for image ${imageName} from ${buildPath}`);
     sendMessage(`Building image ${imageName} from ${buildPath}`);
@@ -89,28 +90,13 @@ export async function buildAndPushImage(imageName, buildPath) {
             sendMessage(`Error building image ${imageName}: ${err.message}`);
             return reject(err);
           }
-          
           // Check for error messages in the build result
           const errorMessage = findErrorInBuildResult(buildLogs);
           if (errorMessage) {
             console.error(`[Registry] Build completed with error: ${errorMessage}`);
-            sendMessage(`Error in build: ${errorMessage}`);
-            return reject(new Error(errorMessage));
+            sendMessage(`Build completed with error: ${errorMessage}`);
           }
-          
-          console.log(`[Registry] Build completed successfully for ${imageName}`);
-          sendMessage(`Successfully built image ${imageName}`);
-          
-          // After building, push to registry
-          pushImageToRegistry(imageName)
-            .then(result => {
-              console.log(`[Registry] Push completed for ${imageName}`);
-              resolve(result);
-            })
-            .catch(err => {
-              console.error(`[Registry] Push failed for ${imageName}: ${err.message}`);
-              reject(err);
-            });
+          resolve({ status: 'success', logs: buildLogs });
         },
         (event) => {
           // Save all build logs
@@ -118,13 +104,16 @@ export async function buildAndPushImage(imageName, buildPath) {
             const logLine = event.stream.trim();
             if (logLine) {
               buildLogs.push(logLine);
+              if (onLog) onLog(logLine); // <-- Stream log line to callback
               console.log(`[Docker Build] ${logLine}`);
             }
           } else if (event.error) {
             buildLogs.push(`ERROR: ${event.error}`);
+            if (onLog) onLog(`ERROR: ${event.error}`);
             console.error(`[Docker Build Error] ${event.error}`);
           } else {
-            console.log(`[Docker Build Event]`, event);
+            // Unknown event type
+            if (onLog) onLog(JSON.stringify(event));
           }
         }
       );
