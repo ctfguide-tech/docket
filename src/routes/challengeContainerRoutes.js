@@ -769,7 +769,7 @@ router.post('/challenge-containers/deploy', async (req, res) => {
 
     let containerId;
     try {
-      containerId = await createTestDeployContainer(
+      containerId = await createChallengeContainer(
         imageName,
         port,
         env || {},

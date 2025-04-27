@@ -1,0 +1,26 @@
+FROM kalilinux/kali-rolling
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# install XFCE, terminal, file manager, and common tools
+RUN apt-get update && \
+    apt-get install -y \
+        xfce4 xfce4-terminal thunar \
+        kali-linux-default \
+        novnc websockify x11vnc xvfb firefox-esr sudo openssh-server \
+        net-tools curl wget git python3-pip x11-utils dbus-x11
+    # removed apt-get clean due to read-only FS errors
+
+# set up sshd
+RUN mkdir -p /run/sshd && echo 'root:root' | chpasswd
+
+# set up noVNC web root
+RUN mkdir -p /root/.vnc
+
+# copy startup script
+COPY start-kali.sh /usr/local/bin/start-kali.sh
+RUN chmod +x /usr/local/bin/start-kali.sh
+
+EXPOSE 6080
+
+CMD ["/usr/local/bin/start-kali.sh"]

@@ -1,8 +1,0 @@
-FROM ubuntu:latest
-WORKDIR /challenge
-RUN apt-get update && apt-get install -y     gcc     socat     python3
-COPY flag.txt /challenge/
-COPY challenge /challenge/
-RUN chmod +x /challenge/challenge
-EXPOSE 9999
-CMD ["socat", "TCP-LISTEN:9999,fork,reuseaddr", "EXEC:/challenge/challenge"]
